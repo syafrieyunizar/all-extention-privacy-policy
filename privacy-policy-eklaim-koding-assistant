@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Kebijakan Privasi e-Klaim Koding Assistant">
+  <title>Kebijakan Privasi | e-Klaim Koding Assistant</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --blue: #0b57d0;
+      --ink: #172033;
+      --muted: #5f6b7a;
+      --line: #dce3ec;
+      --soft: #eef5ff;
+      --page: #f5f7fa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--page);
+      font: 16px/1.7 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    header {
+      color: #fff;
+      background: var(--blue);
+    }
+
+    .header-inner,
+    main,
+    footer {
+      width: min(900px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .header-inner { padding: 44px 0 38px; }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    header p { margin: 0; opacity: .9; }
+
+    main {
+      margin-top: 28px;
+      margin-bottom: 28px;
+      padding: 34px clamp(20px, 5vw, 48px);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .summary {
+      margin: 0 0 30px;
+      padding: 18px 20px;
+      background: var(--soft);
+      border-left: 4px solid var(--blue);
+    }
+
+    h2 {
+      margin: 34px 0 8px;
+      font-size: 1.3rem;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 6px;
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    p, ul, ol { margin-top: 8px; }
+    ul, ol { padding-left: 24px; }
+    li + li { margin-top: 6px; }
+    a { color: var(--blue); }
+    code { font-size: .92em; }
+
+    footer {
+      padding: 0 0 32px;
+      color: var(--muted);
+      font-size: .9rem;
+      text-align: center;
+    }
+
+    @media (max-width: 540px) {
+      .header-inner { padding: 32px 0 28px; }
+      main { margin-top: 16px; padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Kebijakan Privasi</h1>
+      <p>e-Klaim Koding Assistant</p>
+    </div>
+  </header>
+
+  <main>
+    <p><strong>Terakhir diperbarui:</strong> 19 Juli 2026</p>
+
+    <p>Kebijakan ini menjelaskan cara ekstensi Chrome <strong>e-Klaim Koding Assistant</strong> ("Ekstensi") menangani data ketika membantu pengguna membaca dokumen medis, menghasilkan saran koding ICD, menelaah kelengkapan file, dan mengisi koding ke halaman e-Klaim.</p>
+
+    <div class="summary">
+      <strong>Ringkasan perlindungan data</strong>
+      <ul>
+        <li>PDF diproses lebih dahulu pada perangkat pengguna menggunakan PDF.js.</li>
+        <li>Halaman scan atau gambar diproses dengan OCR lokal dan dapat ditinjau pengguna.</li>
+        <li>Identitas pasien, dokter, dan fasilitas kesehatan disensor secara lokal sebelum pemrosesan AI.</li>
+        <li>PDF mentah tidak dikirim ke penyedia AI ketika teks dapat diekstrak atau di-OCR secara lokal.</li>
+        <li>Teks medis tersensor dapat dikirim ke Supabase dan penyedia AI pilihan pengguna.</li>
+        <li>Pengembang tidak menjual data pengguna atau menggunakannya untuk periklanan maupun kelayakan kredit.</li>
+      </ul>
+    </div>
+
+    <h2>Data yang Ditangani</h2>
+
+    <h3>Informasi medis dan isi dokumen</h3>
+    <p>Ekstensi menangani isi PDF resume atau rekam medis, termasuk diagnosis, gejala, hasil pemeriksaan, terapi, tindakan, dan informasi klinis lain. Data digunakan hanya untuk fungsi yang diminta pengguna, seperti ekstraksi teks, saran ICD-10/ICD-9, pencarian knowledge BPJS, dan analisis kelengkapan file.</p>
+
+    <h3>Informasi identitas</h3>
+    <p>Dokumen dapat memuat nama pasien, NIK, nomor rekam medis, nomor SEP, alamat, tanggal lahir, nomor telepon, nama dokter, dan identitas fasilitas kesehatan. Ekstensi memproses informasi tersebut secara lokal untuk:</p>
+    <ul>
+      <li>menampilkan identitas pasien pada hasil;</li>
+      <li>memeriksa kecocokan pasien sebelum mengisi halaman e-Klaim;</li>
+      <li>menyensor identitas sebelum teks dikirim ke layanan AI; dan</li>
+      <li>menyimpan riwayat lokal bila pengguna memakai fitur riwayat.</li>
+    </ul>
+    <p>Ekstensi dirancang agar identitas tersebut tidak disertakan dalam teks yang dikirim ke AI. Karena format dokumen rumah sakit dapat berbeda, pengguna tetap harus meninjau hasil penyensoran dan keluaran sebelum digunakan.</p>
+
+    <h3>Informasi autentikasi dan konfigurasi</h3>
+    <p>Ekstensi dapat menangani API key personal, endpoint AI, username, password, token sesi, ID perangkat, provider, model, dan preferensi tampilan. API key personal disimpan pada penyimpanan lokal Chrome dan digunakan hanya untuk endpoint AI yang dipilih pengguna. Kredensial mode admin dikirim melalui HTTPS ke Supabase Edge Function untuk autentikasi. Password login tidak dipertahankan dalam sesi lokal setelah login berhasil; token sesi disimpan secara lokal selama masih berlaku.</p>
+
+    <h3>Konten situs yang sedang digunakan</h3>
+    <p>Atas tindakan pengguna, Ekstensi dapat membaca PDF dari tab aktif serta elemen terbatas pada halaman e-Klaim, seperti nomor SEP atau nomor rekam medis, untuk memeriksa kecocokan pasien dan mengisi kode. Ekstensi tidak membuat riwayat penelusuran, tidak menggunakan analytics, dan tidak memantau aktivitas browsing pengguna.</p>
+
+    <h2>Pemrosesan dan Penyimpanan Lokal</h2>
+    <p>Ekstensi menggunakan <code>chrome.storage.local</code> dan IndexedDB untuk menyimpan pengaturan, state hasil generate, sesi admin, dan riwayat lokal. PDF yang disimpan dalam state atau riwayat lokal dienkripsi menggunakan AES-GCM. Kunci enkripsi juga berada di penyimpanan lokal profil Chrome, sehingga enkripsi ini mengurangi paparan data tersimpan tetapi bukan pengganti pengamanan perangkat atau profil Chrome.</p>
+    <p>Data lokal tetap tersimpan sampai pengguna menghapus sesi atau riwayat, menghapus data Ekstensi dari Chrome, atau mencopot Ekstensi. Pengguna dapat menghapus satu riwayat maupun mereset sesi melalui antarmuka Ekstensi.</p>
+
+    <h2>Data yang Dikirim ke Layanan Eksternal</h2>
+    <p>Untuk menjalankan fungsi yang diminta pengguna, Ekstensi dapat mengirim data berikut melalui HTTPS:</p>
+    <ol>
+      <li><strong>Supabase Edge Function:</strong> teks medis tersensor atau keyword turunannya untuk pencarian knowledge BPJS; prompt tersensor untuk pemrosesan AI dalam mode admin; serta data autentikasi dan sesi admin.</li>
+      <li><strong>Penyedia AI pilihan pengguna:</strong> teks medis tersensor, prompt, dan konfigurasi permintaan untuk menghasilkan saran koding atau analisis kelengkapan. Dalam mode personal, API key pengguna dikirim langsung ke endpoint provider yang dipilih.</li>
+      <li><strong>Situs e-Klaim aktif:</strong> hasil koding dan identitas pembanding dimasukkan hanya setelah tindakan pengguna dan pemeriksaan kecocokan SEP atau nomor rekam medis.</li>
+    </ol>
+    <p>Penyedia AI dapat berupa Gemini, Sumopod, AIMurah, Genfity, X5Lab, atau endpoint OpenAI-compatible lain yang dikonfigurasi pengguna. Penggunaan dan retensi data oleh penyedia tersebut tunduk pada kebijakan privasi dan ketentuan masing-masing penyedia. Pengembang Ekstensi tidak menggunakan dokumen medis untuk melatih model AI milik pengembang.</p>
+    <p>Tautan dukungan dapat membuka layanan pihak ketiga seperti Lynk.id atau WhatsApp. Ekstensi tidak mengirim dokumen medis secara otomatis ke layanan dukungan tersebut.</p>
+
+    <h2>Berbagi dan Penjualan Data</h2>
+    <p>Pengembang tidak menjual data pengguna. Data tidak digunakan atau dipindahkan untuk tujuan yang tidak berhubungan dengan fungsi utama Ekstensi, untuk periklanan, atau untuk menentukan kelayakan kredit maupun pemberian pinjaman. Pemindahan data hanya dilakukan kepada layanan yang diperlukan untuk fungsi pilihan pengguna sebagaimana dijelaskan di atas.</p>
+
+    <h2>Keamanan</h2>
+    <p>Ekstensi menggunakan pemrosesan PDF dan OCR lokal, penyensoran identitas sebelum pemrosesan AI, HTTPS untuk komunikasi jaringan, serta AES-GCM untuk PDF yang disimpan secara lokal. Tidak ada metode yang dapat menjamin keamanan mutlak. Pengguna bertanggung jawab menjaga keamanan perangkat, akun Chrome, kredensial, dan endpoint AI yang dipilih.</p>
+
+    <h2>Kontrol Pengguna</h2>
+    <ul>
+      <li>Memilih mode API key personal atau admin.</li>
+      <li>Meninjau dan mengedit hasil OCR sebelum diproses.</li>
+      <li>Meninjau serta mengedit hasil koding dan analisis.</li>
+      <li>Menghapus file dari sesi aktif dan menghapus riwayat lokal.</li>
+      <li>Mereset sesi atau mencopot Ekstensi untuk menghapus data lokal terkait.</li>
+    </ul>
+
+    <h2>Penggunaan yang Dibatasi</h2>
+    <p>Penggunaan data yang diperoleh dari Google APIs mengikuti <a href="https://developer.chrome.com/docs/webstore/program-policies/user-data-faq">Chrome Web Store User Data Policy</a>, termasuk persyaratan penggunaan terbatas. Ekstensi menggunakan data hanya untuk menyediakan dan meningkatkan fungsi yang terlihat dan diminta pengguna.</p>
+
+    <h2>Perubahan Kebijakan</h2>
+    <p>Kebijakan ini dapat diperbarui ketika fungsi atau alur data Ekstensi berubah. Tanggal pembaruan terbaru akan dicantumkan di bagian atas halaman ini.</p>
+
+    <h2>Kontak</h2>
+    <p>Pengembang: <strong>Syafrie Yunizar</strong></p>
+    <p>Pertanyaan atau permintaan terkait privasi dapat disampaikan melalui <a href="https://github.com/syafrieyunizar/eklaim-koding-assistant/issues">GitHub Issues</a>.</p>
+  </main>
+
+  <footer>
+    <a href="https://github.com/syafrieyunizar/eklaim-koding-assistant">e-Klaim Koding Assistant</a>
+  </footer>
+</body>
+</html>
