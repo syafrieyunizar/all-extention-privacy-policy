@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kebijakan Privasi - eKlaim x eRM Helper RSBHHB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1976d2;
+            --primary-dark: #0d47a1;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --heading-color: #0f172a;
+            --border-color: #e2e8f0;
+            --accent-green: #2e7d32;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border: 1px solid var(--border-color);
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--heading-color);
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        h2 {
+            color: var(--heading-color);
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 28px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        p, ul {
+            margin-bottom: 16px;
+            font-size: 15px;
+            color: #475569;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid var(--accent-green);
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .highlight-box p {
+            color: #166534;
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 16px 10px;
+            }
+            .container {
+                padding: 24px 16px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <span class="badge">Kebijakan Privasi Resmi</span>
+        <h1>eKlaim x eRM Helper RSBHHB</h1>
+        <p>Terakhir diperbarui: 21 Juli 2026 | Versi 1.2.3</p>
+    </div>
+
+    <div class="highlight-box">
+        <p>🔒 Komitmen Keamanan: Ekstensi ini dirancang khusus untuk tim internal Casemix RSBHHB. Seluruh data medis dan catatan sensitif dienkripsi secara lokal sebelum dikirimkan ke cloud server.</p>
+    </div>
+
+    <h2>1. Pendahuluan</h2>
+    <p>Ekstensi Chrome <strong>eKlaim x eRM Helper RSBHHB</strong> dibuat untuk membantu produktivitas tim Casemix RSBHHB dalam memadukan dan memverifikasi data antara sistem e-Klaim BPJS Kesehatan dengan sistem Rekam Medis Elektronik (e-RM) rumah sakit. Kami menghargai privasi dan keamanan data pasien serta pengguna ekstensi ini.</p>
+
+    <h2>2. Data yang Dikumpulkan dan Diproses</h2>
+    <p>Ekstensi ini memproses beberapa jenis informasi teknis dan operasional untuk dapat berfungsi:</p>
+    <ul>
+        <li><strong>Data Pengidentifikasi Berkas Pasien:</strong> Nomor SEP (Surat Elegabilitas Peserta), Nomor Rekam Medis (RM), dan Nama Pasien yang tampil pada halaman kerja aktif.</li>
+        <li><strong>Catatan Hambatan & Kelengkapan Resume Medis:</strong> Teks catatan medis internal, status kelengkapan resume, dan penandaan dokter penanggung jawab (DPJP).</li>
+        <li><strong>Identitas Pengguna:</strong> Nama/ID pengedit (dikonfigurasi sendiri oleh pengguna di menu Pengaturan) untuk keperluan audit log internal tim.</li>
+        <li><strong>Data Konfigurasi Koneksi:</strong> URL Supabase, Anon Key, dan Kata Sandi Enkripsi.</li>
+    </ul>
+
+    <h2>3. Penyimpanan dan Enkripsi Data</h2>
+    <ul>
+        <li><strong>Penyimpanan Lokal (Local Device):</strong> Kata sandi enkripsi, riwayat penyalinan clipboard, dan preferensi pengaturan disimpan 100% secara lokal pada browser pengguna menggunakan <code>chrome.storage.local</code> dan tidak pernah dikirimkan ke pihak ketiga mana pun.</li>
+        <li><strong>Enkripsi Terdistribusi (Cloud Storage):</strong> Seluruh teks catatan medis yang dikirimkan ke cloud (database Supabase milik rumah sakit) dienkripsi terlebih dahulu di perangkat pengguna menggunakan algoritma kriptografi <strong>AES-GCM / RC4</strong>. Hanya pengguna yang memiliki kata sandi enkripsi yang sama yang dapat membaca isi catatan tersebut.</li>
+    </ul>
+
+    <h2>4. Penggunaan Izin Browser (Permissions)</h2>
+    <p>Ekstensi ini hanya meminta izin minimal yang diperlukan untuk beroperasi:</p>
+    <ul>
+        <li><code>storage</code>: Digunakan untuk menyimpan preferensi konfigurasi dan data cache secara lokal.</li>
+        <li><code>Host Permissions (http://172.16.0.5/* & http://172.16.0.3/*)</code>: Digunakan untuk menjalankan content script yang menyuntikkan tombol pembantu dan penanda warna pada antarmuka web e-Klaim dan e-RM internal rumah sakit.</li>
+    </ul>
+
+    <h2>5. Pihak Ketiga & Pembagian Data</h2>
+    <p>Kami <strong>TIDAK PERNAH</strong> menjual, menyewakan, membagikan, atau memperjualbelikan data apa pun dari ekstensi ini kepada pihak ketiga, pengiklan, atau penyedia analitik luar. Data hanya mengalir antara browser lokal pengguna dengan server database Supabase yang dikelola sendiri oleh tim rumah sakit.</p>
+
+    <h2>6. Hak Pengguna</h2>
+    <p>Pengguna memiliki kontrol penuh terhadap data lokal mereka. Seluruh data penyimpanan lokal dapat dihapus kapan saja melalui menu pengaturan browser atau dengan mengklik tombol "Reset Riwayat Salinan" pada panel ekstensi.</p>
+
+    <h2>7. Hubungi Kami</h2>
+    <p>Jika Anda memiliki pertanyaan terkait kebijakan privasi atau penggunaan ekstensi ini, silakan hubungi tim IT / Casemix RSBHHB atau kirimkan laporan melalui repositori proyek.</p>
+
+    <div class="footer">
+        &copy; 2026 Tim Casemix RSBHHB. Hak Cipta Dilindungi Undang-Undang.
+    </div>
+</div>
+
+</body>
+</html>
