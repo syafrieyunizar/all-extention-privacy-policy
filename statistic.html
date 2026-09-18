@@ -30,6 +30,12 @@
     .ok { color:var(--green); }
     .fail { color:var(--red); }
     .empty { padding:36px; text-align:center; color:var(--muted); }
+    .prompt-button { min-height:32px; padding:5px 9px; font-size:12px; }
+    .prompt-dialog { width:min(860px,calc(100% - 32px)); }
+    .prompt-block { margin-top:16px; }
+    .prompt-block h3 { margin:0 0 6px; font-size:13px; }
+    .prompt-block pre { max-height:240px; overflow:auto; margin:0; padding:12px; border:1px solid var(--line); border-radius:6px; background:#fafafa; white-space:pre-wrap; overflow-wrap:anywhere; font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .prompt-actions { display:flex; justify-content:flex-end; margin-top:18px; }
     dialog { width:min(420px,calc(100% - 32px)); border:1px solid var(--line); border-radius:8px; padding:22px; }
     dialog::backdrop { background:rgba(0,0,0,.45); }
     dialog h2 { margin:0 0 6px; }
@@ -44,7 +50,7 @@
     <header>
       <div>
         <h1>Statistik Penggunaan Extension</h1>
-        <p class="sub">Log akses dan pemanggilan API admin tanpa menyimpan API key atau isi rekam medis.</p>
+        <p class="sub">Log akses dan isi prompt yang dikirim ke AI admin. API key dan response AI tidak disimpan.</p>
       </div>
       <button id="refresh" class="primary">Muat ulang</button>
     </header>
@@ -82,7 +88,7 @@
 
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Waktu</th><th>User</th><th>Aktivitas</th><th>Fitur</th><th>Provider / Model</th><th>Durasi</th><th>Karakter I/O</th><th>Status</th></tr></thead>
+        <thead><tr><th>Waktu</th><th>User</th><th>Aktivitas</th><th>Fitur</th><th>Provider / Model</th><th>Durasi</th><th>Karakter I/O</th><th>Status</th><th>Prompt</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
       <div id="empty" class="empty">Belum ada data.</div>
@@ -100,6 +106,25 @@
     </form>
   </dialog>
 
+  <dialog id="promptDetail" class="prompt-dialog">
+    <h2>Isi yang dikirim ke AI</h2>
+    <p id="promptMeta" class="sub"></p>
+    <div id="promptStatus" class="sub"></div>
+    <section class="prompt-block">
+      <h3>System prompt</h3>
+      <pre id="systemPrompt"></pre>
+    </section>
+    <section class="prompt-block">
+      <h3>User prompt</h3>
+      <pre id="userPrompt"></pre>
+    </section>
+    <section id="imageMeta" class="prompt-block" hidden>
+      <h3>Gambar</h3>
+      <pre id="imageMetaText"></pre>
+    </section>
+    <div class="prompt-actions"><button type="button" id="closePrompt">Tutup</button></div>
+  </dialog>
+
   <script>
     const ENDPOINT="https://yvcqgwpfjoxhuyhxuiry.supabase.co/functions/v1/knowledge-admin";
     const ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Y3Fnd3Bmam94aHV5aHh1aXJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NzkxOTIsImV4cCI6MjA5NDA1NTE5Mn0.cSVjIjIpC9hlm8Sb5nISxUitoRHtEL0pC6ZphQ9SxLw";
@@ -109,6 +134,32 @@
     const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     const label=value=>String(value||"-").replaceAll("_"," ");
     const when=value=>new Date(value).toLocaleString("id-ID",{dateStyle:"medium",timeStyle:"medium"});
+
+    async function showPrompt(logId){
+      $("promptMeta").textContent="Memuat detail log...";
+      $("promptStatus").textContent="";
+      $("systemPrompt").textContent="";
+      $("userPrompt").textContent="";
+      $("imageMeta").hidden=true;
+      $("promptDetail").showModal();
+      try{
+        const response=await fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json",apikey:ANON_KEY,Authorization:`Bearer ${ANON_KEY}`},body:JSON.stringify({action:"usage_log_detail",app_id:$('app').value,log_id:logId,...auth})});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok||data.error)throw new Error(data.error||`HTTP ${response.status}`);
+        if(!data.log)throw new Error("Isi prompt tidak tersedia untuk log ini");
+        const log=data.log;
+        $("promptMeta").textContent=`${label(log.feature)} · ${label(log.provider)} / ${log.model||"-"} · ${when(log.created_at)}`;
+        $("systemPrompt").textContent=log.system_prompt||"(tidak ada)";
+        $("userPrompt").textContent=log.user_prompt||"(tidak ada)";
+        if(log.image_mime_type){
+          $("imageMeta").hidden=false;
+          $("imageMetaText").textContent=`${log.image_mime_type}, ${Number(log.image_bytes||0).toLocaleString("id-ID")} byte dikirim sebagai gambar`;
+        }
+      }catch(error){
+        $("promptMeta").textContent="";
+        $("promptStatus").textContent=error.message;
+      }
+    }
 
     async function load(){
       if(!auth)return $("login").showModal();
@@ -146,7 +197,8 @@
         <td>${esc(when(row.created_at))}</td><td>${esc(row.username)}</td><td>${esc(label(row.event_type))}</td>
         <td>${esc(label(row.feature))}</td><td>${esc([row.provider,row.model].filter(Boolean).join(" / ")||"-")}</td>
         <td>${row.duration_ms==null?"-":`${(row.duration_ms/1000).toFixed(1)} dtk`}</td><td>${row.input_chars==null?"-":`${row.input_chars} / ${row.output_chars||0}`}</td>
-        <td class="${row.success?"ok":"fail"}">${row.success?"Berhasil":esc(row.error_message||"Gagal")}</td></tr>`).join("");
+        <td class="${row.success?"ok":"fail"}">${row.success?"Berhasil":esc(row.error_message||"Gagal")}</td>
+        <td>${row.event_type==="api_call"?`<button type="button" class="prompt-button" data-log-id="${esc(row.id)}">Lihat prompt</button>`:"-"}</td></tr>`).join("");
       $("empty").hidden=filtered.length>0;
     }
 
@@ -156,6 +208,8 @@
     $("days").addEventListener("change",load);
     $("user").addEventListener("change",render);
     $("event").addEventListener("change",render);
+    $("rows").addEventListener("click",event=>{const button=event.target.closest("[data-log-id]");if(button)showPrompt(button.dataset.logId)});
+    $("closePrompt").addEventListener("click",()=>$("promptDetail").close());
     $("login").showModal();
   </script>
 </body>
