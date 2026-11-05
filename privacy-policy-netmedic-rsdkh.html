@@ -123,7 +123,7 @@
       <p class="eyebrow">Privasi dan perlindungan data</p>
       <h1>Kebijakan Privasi Netmedic RSDKH</h1>
       <p class="lead">Kebijakan ini menjelaskan bagaimana extension Netmedic RSDKH menangani data ketika membantu pengguna yang berwenang menyiapkan dokumentasi klinis pada sistem eRM RSDKH.</p>
-      <span class="effective-date">Berlaku sejak 28 Agustus 2026</span>
+      <span class="effective-date">Berlaku sejak 28 Agustus 2026 · Diperbarui 5 November 2026</span>
     </div>
 
     <div class="notice"><strong>Informasi penting:</strong> Netmedic RSDKH adalah alat bantu dokumentasi. Seluruh hasil AI, resep, SOAP, kronologi, dan data yang akan dimasukkan ke eRM wajib diperiksa dan disetujui oleh tenaga kesehatan yang berwenang.</div>
@@ -131,7 +131,7 @@
     <section>
       <h2>1. Pengelola dan ruang lingkup</h2>
       <p>Netmedic RSDKH dikembangkan dan dikelola oleh Syafrie Yunizar (selanjutnya disebut "Pengembang"). Kebijakan ini berlaku untuk extension Chrome Netmedic RSDKH.</p>
-      <p>Tujuan tunggal extension adalah membantu pengguna RSDKH yang berwenang menyiapkan, meninjau, menyalin, dan memasukkan dokumentasi klinis ke eRM RSDKH. Fitur pendukung mencakup Magic SOAP, kronologi BPJS, pemetaan e-Resep, memori pasien dan sesi jaga lokal, format laporan WhatsApp, serta capture hasil laboratorium ke clipboard.</p>
+      <p>Tujuan tunggal extension adalah membantu pengguna RSDKH yang berwenang menyiapkan, meninjau, menyalin, dan memasukkan dokumentasi klinis ke eRM RSDKH. Fitur pendukung mencakup Magic SOAP, kronologi BPJS, pemetaan e-Resep, memori pasien, Dashboard Jaga dan Dashboard Visite, penyalinan CPPT dan laporan klinis, serta penyalinan hasil laboratorium ke clipboard.</p>
     </section>
 
     <section>
@@ -141,9 +141,9 @@
         <tbody>
           <tr><th>Identitas pribadi</th><td>Nama pasien, jenis kelamin, umur, nomor rekam medis, nomor registrasi, identitas dokter, dan data identitas lain yang tampil atau dimasukkan pada eRM.</td></tr>
           <tr><th>Informasi kesehatan</th><td>Keluhan, riwayat penyakit, tanda vital, pemeriksaan fisik, diagnosis, rencana terapi, obat, hasil laboratorium, kronologi medis, serta foto klinis yang dipilih pengguna.</td></tr>
-          <tr><th>Informasi autentikasi</th><td>Username, password saat proses login, token sesi, pengenal perangkat, API key pribadi, nama model, dan alamat endpoint provider. Password login tidak disimpan secara persisten oleh extension; token sesi dan pengaturan API dapat disimpan secara lokal.</td></tr>
+          <tr><th>Informasi autentikasi</th><td>Nama pengguna, kata sandi saat login, token sesi, dan pengenal perangkat. Ekstensi menyimpan token sesi dan pengenal perangkat secara lokal. Ekstensi hanya memakai kata sandi untuk autentikasi. Kunci API provider yang dikonfigurasi administrator disimpan di backend.</td></tr>
           <tr><th>Konten situs</th><td>Konten pada halaman eRM RSDKH yang diperlukan untuk mengambil identitas pasien, instruksi dokter, resep, status asesmen, dan hasil laboratorium, serta untuk memasukkan kembali dokumentasi yang telah ditinjau.</td></tr>
-          <tr><th>Data penggunaan khusus eRM</th><td>URL eRM pasien, nomor BED, status pasien, waktu sesi jaga, dan riwayat pasien yang diperlukan untuk navigasi dashboard lokal. Extension tidak mengumpulkan riwayat penjelajahan umum di luar halaman yang didukung.</td></tr>
+          <tr><th>Data tab dan sesi eRM</th><td>URL tab eRM dan dashboard, grup tab, URL kunjungan pasien, nomor BED, status pasien, daftar Visite, dan waktu sesi Jaga. Ekstensi memeriksa URL tab yang terbuka untuk mengenali halaman eRM dan dashboard yang relevan. Ekstensi tidak mengumpulkan riwayat penjelajahan umum.</td></tr>
         </tbody>
       </table>
     </section>
@@ -153,7 +153,8 @@
       <ul>
         <li>Menyusun dan memformat SOAP, kronologi BPJS, e-Resep, dan laporan klinis.</li>
         <li>Mengambil data yang relevan dari halaman eRM dan mengisi kembali kolom eRM setelah tindakan pengguna.</li>
-        <li>Menyimpan draft, riwayat, preferensi, status sesi jaga, dan memori pasien pada perangkat pengguna.</li>
+        <li>Menyimpan draft, riwayat, preferensi, data sesi Jaga dan Visite, serta memori pasien pada profil browser pengguna.</li>
+        <li>Mengenali tab dan kunjungan eRM yang sesuai, memfokuskan tab yang sudah terbuka, serta mengatur grup tab Jaga dan Visite.</li>
         <li>Menganalisis teks atau foto klinis dengan provider AI hanya ketika pengguna menjalankan fitur terkait.</li>
         <li>Menyalin teks atau gambar hasil laboratorium ke clipboard ketika pengguna menekan tombol salin atau capture.</li>
         <li>Memvalidasi sesi API admin dan menjaga keamanan akses pengguna.</li>
@@ -163,26 +164,20 @@
 
     <section>
       <h2>4. Penyimpanan lokal dan retensi</h2>
-      <p>Draft SOAP dan kronologi, hasil sebelumnya, memori pasien, daftar BED, sesi jaga, template WhatsApp, alias produk, pengaturan provider, API key pribadi, dan token sesi dapat disimpan menggunakan <code>chrome.storage.local</code> pada profil browser pengguna.</p>
+      <p>Draft SOAP dan kronologi, hasil sebelumnya, memori pasien, daftar BED, sesi Jaga dan Visite, template WhatsApp, alias produk, token sesi, dan cache Token Bersama dapat disimpan menggunakan <code>chrome.storage.local</code> pada profil browser pengguna. Kunci API pribadi dari versi lama dapat tetap tersimpan secara lokal. Fitur AI versi 2.3.5 menggunakan konfigurasi API admin di backend.</p>
       <ul>
         <li>Riwayat pasien dan sesi jaga dibatasi hingga sekitar 60 hari dan dapat dihapus secara manual dari antarmuka extension.</li>
-        <li>Draft, preferensi, API key pribadi, dan data lokal lain disimpan sampai dihapus oleh pengguna, extension di-reset, atau extension dihapus.</li>
-        <li>Gambar capture hasil laboratorium tidak disimpan sebagai file oleh extension; gambar hanya ditempatkan pada clipboard atas tindakan pengguna.</li>
+        <li>Pengguna dapat menghapus daftar pasien dan dokter dalam sesi Visite melalui Selesai Visite.</li>
+        <li>Draft, preferensi, dan data lokal lain dapat disimpan sampai dihapus oleh pengguna atau sampai pengguna mengatur ulang atau menghapus ekstensi.</li>
+        <li>Gambar hasil laboratorium ditempatkan pada clipboard atas tindakan pengguna tanpa disimpan sebagai file oleh ekstensi.</li>
         <li>Foto klinis disimpan sementara di memori untuk diproses dan tidak dimasukkan ke riwayat lokal oleh fitur foto klinis.</li>
       </ul>
     </section>
 
     <section>
       <h2>5. Pengiriman data dan pihak penerima</h2>
-      <p>Fitur inti lokal tidak memerlukan pengiriman data kepada Pengembang. Ketika pengguna memilih fitur AI, prompt dapat memuat informasi identitas dan kesehatan yang dimasukkan atau diambil dari eRM. Data tersebut dikirim hanya untuk menghasilkan hasil yang diminta kepada salah satu pihak berikut:</p>
-      <ul>
-        <li><strong>Google Gemini API</strong>, jika Gemini dipilih sebagai provider.</li>
-        <li><strong>Sumopod, AImurah, atau SemutSSH</strong>, jika salah satu provider kompatibel tersebut dipilih.</li>
-        <li><strong>Provider HTTPS khusus pilihan pengguna</strong>, jika pengguna mengonfigurasi endpoint sendiri dan memberikan izin host.</li>
-        <li><strong>Supabase</strong> pada proyek backend Netmedic RSDKH, untuk autentikasi API admin, konfigurasi, dan penerusan permintaan AI pada mode API admin.</li>
-        <li><strong>Provider AI yang dikonfigurasi oleh administrator</strong>, ketika mode API admin digunakan.</li>
-      </ul>
-      <p>Provider pihak ketiga dapat memproses data sesuai ketentuan dan kebijakan privasi mereka. Pengguna atau administrator bertanggung jawab memilih provider yang sesuai dengan kebijakan organisasi dan peraturan yang berlaku.</p>
+      <p>Saat pengguna menjalankan fitur AI, ekstensi mengirim permintaan ke backend Netmedic RSDKH di Supabase. Backend meneruskan permintaan ke provider AI yang dikonfigurasi administrator. Teks dan foto klinis yang dikirim dapat memuat informasi kesehatan dan identitas jika tercantum dalam data yang dimasukkan atau dipilih pengguna.</p>
+      <p>Backend Supabase juga digunakan untuk autentikasi, konfigurasi API admin, katalog produk bersama, dan ringkasan pemakaian Token Bersama. Provider AI memproses permintaan sesuai ketentuan dan kebijakan privasinya. Administrator memilih provider sesuai kebijakan organisasi dan peraturan yang berlaku.</p>
       <p>Interaksi dengan eRM dikirim ke sistem RSDKH yang sedang dibuka pengguna. Komunikasi internet menuju layanan AI dan Supabase menggunakan HTTPS. Endpoint eRM intranet dapat mengikuti konfigurasi jaringan internal rumah sakit.</p>
     </section>
 
@@ -192,12 +187,14 @@
         <tbody>
           <tr><th>sidePanel</th><td>Menampilkan antarmuka utama Magic SOAP, kronologi, pengaturan, dan sesi jaga di panel samping.</td></tr>
           <tr><th>storage</th><td>Menyimpan pengaturan, draft, riwayat terbatas, memori pasien, sesi jaga, dan status autentikasi pada perangkat pengguna.</td></tr>
-          <tr><th>clipboardWrite</th><td>Menyalin hasil SOAP, kronologi, format WhatsApp, atau gambar hasil laboratorium ke clipboard setelah tindakan pengguna.</td></tr>
-          <tr><th>Akses host RSDKH</th><td>Membaca dan mengisi bagian eRM RSDKH yang diperlukan oleh fitur extension.</td></tr>
-          <tr><th>Akses host AI dan Supabase</th><td>Mengirim permintaan AI dan melakukan autentikasi atau konfigurasi API admin.</td></tr>
-          <tr><th>Izin host HTTPS opsional</th><td>Diminta hanya ketika pengguna memilih dan menyimpan endpoint provider AI khusus.</td></tr>
+          <tr><th>clipboardWrite</th><td>Menyalin SOAP, kronologi, CPPT, format WhatsApp, atau gambar hasil laboratorium ke clipboard setelah tindakan pengguna.</td></tr>
+          <tr><th>tabs</th><td>Membaca URL tab terbuka dan URL tujuan tab yang sedang dimuat untuk mengenali eRM dan dashboard, memverifikasi kunjungan yang sesuai, serta membuka atau memfokuskan tab terkait.</td></tr>
+          <tr><th>tabGroups</th><td>Mencari, menamai, dan mengatur grup Jaga dan Visite yang berisi dashboard, daftar pasien, serta tab eRM atau CPPT terkait. Grup juga digunakan saat dashboard dikembalikan ke grup setelah pin dilepas.</td></tr>
+          <tr><th>rsudbalangan.com dan 10.10.0.3</th><td>Membaca dan mengisi bagian eRM RSDKH yang diperlukan untuk fitur yang dijalankan pengguna, melalui alamat publik atau intranet rumah sakit.</td></tr>
+          <tr><th>Supabase</th><td>Menghubungi backend Netmedic RSDKH untuk autentikasi, konfigurasi dan penerusan AI admin, katalog produk bersama, serta ringkasan pemakaian Token Bersama.</td></tr>
         </tbody>
       </table>
+      <p>Penyimpanan dan sinkronisasi grup tab mengikuti pengaturan browser. Jika sinkronisasi histori dan tab pada Akun Google diaktifkan, Chrome dapat menyinkronkan grup dan tab di dalamnya antarperangkat. <a href="https://support.google.com/chrome/answer/2391819">Bantuan Chrome tentang grup tab</a>.</p>
     </section>
 
     <section>
@@ -209,12 +206,12 @@
 
     <section>
       <h2>8. Keamanan</h2>
-      <p>Extension membatasi akses host sesuai layanan yang diperlukan, membundel seluruh kode yang dijalankan, tidak menjalankan kode JavaScript atau WebAssembly dari server jarak jauh, dan menggunakan HTTPS untuk layanan internet. API key pribadi disimpan pada profil browser lokal. Tidak ada metode penyimpanan atau transmisi yang dapat dijamin aman sepenuhnya; pengguna harus menjaga keamanan perangkat, akun, dan API key.</p>
+      <p>Extension membatasi akses host sesuai layanan yang diperlukan, membundel seluruh kode yang dijalankan, tidak menjalankan kode JavaScript atau WebAssembly dari server jarak jauh, dan menggunakan HTTPS untuk layanan internet. Kunci API provider yang dikonfigurasi administrator tetap berada di backend. Pengguna bertanggung jawab menjaga keamanan perangkat dan akun yang digunakan.</p>
     </section>
 
     <section>
       <h2>9. Pilihan dan penghapusan data</h2>
-      <p>Pengguna dapat menghapus riwayat melalui antarmuka extension, menghapus API key pribadi melalui Pengaturan, logout dari API admin, atau menghapus seluruh data lokal dengan menghapus atau me-reset extension. Untuk permintaan terkait data backend atau akun API admin, hubungi Pengembang menggunakan alamat di bawah.</p>
+      <p>Pengguna dapat menghapus riwayat melalui antarmuka extension, mengakhiri sesi Visite, keluar dari API admin, atau menghapus seluruh data lokal dengan mengatur ulang atau menghapus ekstensi. Untuk permintaan terkait data backend atau akun API admin, hubungi Pengembang menggunakan alamat di bawah.</p>
     </section>
 
     <section>
