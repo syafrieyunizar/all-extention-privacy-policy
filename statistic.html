@@ -34,6 +34,8 @@
     .prompt-dialog { width:min(860px,calc(100% - 32px)); }
     .prompt-block { margin-top:16px; }
     .prompt-block h3 { margin:0 0 6px; font-size:13px; }
+    .prompt-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .prompt-copy { min-height:30px; padding:4px 10px; font-size:12px; }
     .prompt-block pre { max-height:240px; overflow:auto; margin:0; padding:12px; border:1px solid var(--line); border-radius:6px; background:#fafafa; white-space:pre-wrap; overflow-wrap:anywhere; font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace; }
     .prompt-actions { display:flex; justify-content:flex-end; margin-top:18px; }
     dialog { width:min(420px,calc(100% - 32px)); border:1px solid var(--line); border-radius:8px; padding:22px; }
@@ -111,11 +113,11 @@
     <p id="promptMeta" class="sub"></p>
     <div id="promptStatus" class="sub"></div>
     <section class="prompt-block">
-      <h3>System prompt</h3>
+      <div class="prompt-heading"><h3>System prompt</h3><button type="button" id="copySystemPrompt" class="prompt-copy" disabled>Salin</button></div>
       <pre id="systemPrompt"></pre>
     </section>
     <section class="prompt-block">
-      <h3>User prompt</h3>
+      <div class="prompt-heading"><h3>User prompt</h3><button type="button" id="copyUserPrompt" class="prompt-copy" disabled>Salin</button></div>
       <pre id="userPrompt"></pre>
     </section>
     <section id="imageMeta" class="prompt-block" hidden>
@@ -135,11 +137,35 @@
     const label=value=>String(value||"-").replaceAll("_"," ");
     const when=value=>new Date(value).toLocaleString("id-ID",{dateStyle:"medium",timeStyle:"medium"});
 
+    async function copyPrompt(promptId,button){
+      const value=$(promptId).textContent;
+      try{
+        if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(value);
+        else{
+          const input=document.createElement("textarea");
+          input.value=value;
+          input.style.position="fixed";
+          input.style.opacity="0";
+          document.body.appendChild(input);
+          input.select();
+          const copied=document.execCommand("copy");
+          input.remove();
+          if(!copied)throw new Error("Clipboard tidak tersedia");
+        }
+        button.textContent="Tersalin";
+        setTimeout(()=>button.textContent="Salin",2000);
+      }catch(error){$("promptStatus").textContent="Gagal menyalin prompt. Periksa izin clipboard browser.";}
+    }
+
     async function showPrompt(logId){
       $("promptMeta").textContent="Memuat detail log...";
       $("promptStatus").textContent="";
       $("systemPrompt").textContent="";
       $("userPrompt").textContent="";
+      $("copySystemPrompt").disabled=true;
+      $("copyUserPrompt").disabled=true;
+      $("copySystemPrompt").textContent="Salin";
+      $("copyUserPrompt").textContent="Salin";
       $("imageMeta").hidden=true;
       $("promptDetail").showModal();
       try{
@@ -151,6 +177,8 @@
         $("promptMeta").textContent=`${label(log.feature)} · ${label(log.provider)} / ${log.model||"-"} · ${when(log.created_at)}`;
         $("systemPrompt").textContent=log.system_prompt||"(tidak ada)";
         $("userPrompt").textContent=log.user_prompt||"(tidak ada)";
+        $("copySystemPrompt").disabled=!log.system_prompt;
+        $("copyUserPrompt").disabled=!log.user_prompt;
         if(log.image_mime_type){
           $("imageMeta").hidden=false;
           $("imageMetaText").textContent=`${log.image_mime_type}, ${Number(log.image_bytes||0).toLocaleString("id-ID")} byte dikirim sebagai gambar`;
@@ -160,6 +188,9 @@
         $("promptStatus").textContent=error.message;
       }
     }
+
+    $("copySystemPrompt").addEventListener("click",()=>copyPrompt("systemPrompt",$("copySystemPrompt")));
+    $("copyUserPrompt").addEventListener("click",()=>copyPrompt("userPrompt",$("copyUserPrompt")));
 
     async function load(){
       if(!auth)return $("login").showModal();
