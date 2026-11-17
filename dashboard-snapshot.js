@@ -28,10 +28,27 @@
             return result;
         } catch { throw new Error('Password pembaca salah atau data dashboard rusak.'); }
     }
-    function merge(previous, updates, updatedAt) {
+    function monthCode(month) {
+        const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(month || '');
+        if (!match) throw new Error('Pilih bulan yang valid.');
+        return `${match[2]}${match[1]}`;
+    }
+    function fileMonth(path) {
+        const match = /(?:^|\/)dashboard-(0[1-9]|1[0-2])(\d{4})\.html$/.exec(path || '');
+        return match ? `${match[2]}-${match[1]}` : null;
+    }
+    function validateMonth(snapshot, month) {
+        monthCode(month);
+        if (snapshot.month !== month || !Array.isArray(snapshot.records) || snapshot.records.some(record => !record || typeof record.tglPulang !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(record.tglPulang) || !record.tglPulang.startsWith(`${month}-`))) {
+            throw new Error('Snapshot tidak sesuai dengan bulan yang dipilih.');
+        }
+        return snapshot;
+    }
+    function merge(previous, updates, updatedAt, month) {
+        validateMonth({ month, records: [...previous, ...updates] }, month);
         const records = new Map(previous.map(record => [record.sep, record]));
         updates.forEach(record => records.set(record.sep, record));
-        return { updatedAt, records: [...records.values()] };
+        return { month, updatedAt, records: [...records.values()] };
     }
-    root.EklaimSnapshot = { encrypt, decrypt, merge };
+    root.EklaimSnapshot = { encrypt, decrypt, merge, monthCode, fileMonth, validateMonth };
 })(globalThis);

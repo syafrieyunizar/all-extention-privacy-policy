@@ -5,6 +5,7 @@
     const source = $('source');
     const message = $('message');
     const isExtension = typeof chrome !== 'undefined' && !!chrome.storage?.local;
+    const publicMonth = isExtension ? null : EklaimSnapshot.fileMonth(location.pathname);
     let config = { ...EKLAIM_DASHBOARD_CONFIG };
     let session = null;
     let publishedAt = null;
@@ -14,7 +15,8 @@
     let loadVersion = 0;
 
     const today = new Date();
-    month.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    month.value = publicMonth || `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    if (!isExtension && publicMonth) month.disabled = true;
 
     function notify(text, error = false) {
         message.textContent = text;
@@ -144,7 +146,7 @@
         $('undated-count').textContent = records.filter(record => !record.tglPulang).length;
         $('undated').setAttribute('aria-pressed', String(undated));
         $('undated').firstChild.textContent = undated ? 'Kembali ke bulan ' : 'Tanggal belum tersedia ';
-        $('publish').textContent = undated ? 'Kirim tanpa tanggal' : 'Kirim ke Supabase';
+        $('publish').textContent = 'Kirim ke Supabase';
         $('publish').hidden = source.value !== 'local';
         $('source-caption').textContent = source.value === 'local'
             ? 'Data tersimpan di perangkat. Pengiriman dan penerbitan hanya dilakukan saat Anda menekan tombol kirim.'
@@ -250,6 +252,8 @@
 
     $('publish').addEventListener('click', () => {
         if (session?.role !== 'admin') { notify('Hanya pengelola yang dapat mengirim data.', true); return; }
+        if (undated) { notify('Isi tanggal pulang agar pasien dapat diterbitkan berdasarkan bulan.', true); return; }
+        try { EklaimSnapshot.monthCode(month.value); } catch (error) { notify(error.message, true); return; }
         if (!chosenRecords().length) { notify('Tidak ada data dalam periode ini untuk dikirim.'); return; }
         $('publish-error').textContent = '';
         $('publish-password').value = '';
@@ -262,14 +266,20 @@
         $('publish-error').textContent = '';
         try {
             const password = $('publish-password').value;
-            const current = await EklaimDashboardAuth.publish(config, session, { action: 'read' });
-            const previous = current.snapshot ? await EklaimSnapshot.decrypt(current.snapshot, password) : { records: [] };
+            const selectedMonth = month.value;
+            const code = EklaimSnapshot.monthCode(selectedMonth);
+            const current = await EklaimDashboardAuth.publish(config, session, { action: 'read', month: selectedMonth });
+            const previous = current.snapshot ? EklaimSnapshot.validateMonth(await EklaimSnapshot.decrypt(current.snapshot, password), selectedMonth) : { records: [] };
             const fields = ['sep', 'rm', 'nama', 'ruangan', 'dpjp', 'tglMasuk', 'tglPulang', 'status', 'note'];
             const selected = chosenRecords().map(record => Object.fromEntries(fields.map(field => [field, record[field] || ''])));
-            const snapshot = EklaimSnapshot.merge(previous.records, selected, new Date().toISOString());
+            const snapshot = EklaimSnapshot.merge(previous.records, selected, new Date().toISOString(), selectedMonth);
             const encrypted = await EklaimSnapshot.encrypt(snapshot, password);
-            await EklaimDashboardAuth.publish(config, session, { action: 'write', sha: current.sha, snapshot: encrypted });
+            await EklaimDashboardAuth.publish(config, session, { action: 'write', month: selectedMonth, sha: current.sha, snapshot: encrypted });
             publishedAt = snapshot.updatedAt;
+            const link = `https://syafrieyunizar.github.io/all-extention-privacy-policy/dashboard-${code}.html`;
+            $('published-url').href = link;
+            $('published-url').textContent = link;
+            $('published-link').hidden = false;
             $('publish-dialog').close();
             render();
             notify(`${selected.length} pasien diterbitkan. Dashboard publik akan menampilkan snapshot setelah GitHub Pages selesai memperbarui halaman.`);
@@ -277,7 +287,7 @@
         finally { $('publish-password').value = ''; button.disabled = false; }
     });
 
-    month.addEventListener('change', () => { undated = false; render(); });
+    month.addEventListener('change', () => { undated = false; $('published-link').hidden = true; publishedAt = null; render(); });
     source.addEventListener('change', () => { undated = false; load(); });
     $('search').addEventListener('input', render);
     $('undated').addEventListener('click', () => { undated = !undated; render(); });
@@ -295,9 +305,10 @@
                 if (session.role !== 'admin') { session = null; throw new Error('Akun ini bukan pengelola dashboard.'); }
                 source.value = 'local';
             } else {
-                const response = await fetch('dashboard-snapshot.json', { cache: 'no-store', credentials: 'omit' });
+                if (!publicMonth) throw new Error('Gunakan tautan dashboard untuk bulan yang diterbitkan pengelola.');
+                const response = await fetch(`dashboard-${EklaimSnapshot.monthCode(publicMonth)}.json`, { cache: 'no-store', credentials: 'omit' });
                 if (!response.ok) throw new Error(response.status === 404 ? 'Dashboard belum diterbitkan.' : 'Snapshot dashboard tidak dapat dimuat.');
-                const snapshot = await EklaimSnapshot.decrypt(await response.json(), $('login-password').value);
+                const snapshot = EklaimSnapshot.validateMonth(await EklaimSnapshot.decrypt(await response.json(), $('login-password').value), publicMonth);
                 records = snapshot.records;
                 publishedAt = snapshot.updatedAt;
                 source.value = 'shared';
@@ -366,5 +377,6 @@
         $('open-settings').hidden = true;
         $('refresh').hidden = true;
         $('publish').hidden = true;
+        $('undated').hidden = true;
     }
 })();
