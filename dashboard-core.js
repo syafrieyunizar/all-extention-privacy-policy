@@ -82,8 +82,8 @@
         const doctors = options.doctors || new Set();
         const rooms = options.rooms || new Set();
         const filtered = records.filter(record => {
-            const doctor = doctorKey(record.dpjp || 'DPJP belum tersedia');
-            const room = doctorKey(record.ruangan || 'Ruangan belum tersedia');
+            const doctor = doctorKey(String(record.dpjp || '').trim() || 'DPJP belum tersedia');
+            const room = doctorKey(String(record.ruangan || '').trim() || 'Ruangan belum tersedia');
             return (!doctors.size || doctors.has(doctor)) && (!rooms.size || rooms.has(room)) &&
                 (!query || [record.nama, record.sep, record.rm, record.dpjp, record.ruangan].some(value => String(value || '').toLocaleLowerCase('id').includes(query)));
         });
