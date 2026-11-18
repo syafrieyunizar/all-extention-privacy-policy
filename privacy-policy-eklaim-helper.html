@@ -136,51 +136,67 @@
 
 <div class="container">
     <div class="header">
-        <span class="badge">Kebijakan Privasi Resmi</span>
+        <span class="badge">Kebijakan Privasi</span>
         <h1>eKlaim x eRM Helper RSBHHB</h1>
-        <p>Terakhir diperbarui: 21 Juli 2026 | Versi 1.2.3</p>
+        <p>Terakhir diperbarui: 18 November 2026 | Versi ekstensi 2.0.2</p>
     </div>
 
     <div class="highlight-box">
-        <p>🔒 Komitmen Keamanan: Ekstensi ini dirancang khusus untuk tim internal Casemix RSBHHB. Seluruh data medis dan catatan sensitif dienkripsi secara lokal sebelum dikirimkan ke cloud server.</p>
+        <p>Ekstensi ini membantu tim Casemix memantau resume medis dan kelengkapan berkas pasien. Data pasien diproses pada perangkat dan, sesuai fitur yang digunakan, dapat dikirim ke Supabase atau diterbitkan sebagai snapshot terenkripsi di GitHub Pages.</p>
     </div>
 
-    <h2>1. Pendahuluan</h2>
-    <p>Ekstensi Chrome <strong>eKlaim x eRM Helper RSBHHB</strong> dibuat untuk membantu produktivitas tim Casemix RSBHHB dalam memadukan dan memverifikasi data antara sistem e-Klaim BPJS Kesehatan dengan sistem Rekam Medis Elektronik (e-RM) rumah sakit. Kami menghargai privasi dan keamanan data pasien serta pengguna ekstensi ini.</p>
+    <h2>1. Tujuan dan ruang lingkup</h2>
+    <p>Ekstensi membantu pengguna yang berwenang bekerja dengan sistem e-Klaim dan rekam medis elektronik (e-RM): memeriksa resume, menampilkan status dan catatan, memantau dashboard per bulan, serta membantu navigasi dan pencarian data. Kebijakan ini menjelaskan data yang diproses ekstensi, termasuk data yang hanya disimpan di perangkat.</p>
 
-    <h2>2. Data yang Dikumpulkan dan Diproses</h2>
-    <p>Ekstensi ini memproses beberapa jenis informasi teknis dan operasional untuk dapat berfungsi:</p>
+    <h2>2. Data yang diproses</h2>
     <ul>
-        <li><strong>Data Pengidentifikasi Berkas Pasien:</strong> Nomor SEP (Surat Elegabilitas Peserta), Nomor Rekam Medis (RM), dan Nama Pasien yang tampil pada halaman kerja aktif.</li>
-        <li><strong>Catatan Hambatan & Kelengkapan Resume Medis:</strong> Teks catatan medis internal, status kelengkapan resume, dan penandaan dokter penanggung jawab (DPJP).</li>
-        <li><strong>Identitas Pengguna:</strong> Nama/ID pengedit (dikonfigurasi sendiri oleh pengguna di menu Pengaturan) untuk keperluan audit log internal tim.</li>
-        <li><strong>Data Konfigurasi Koneksi:</strong> URL Supabase, Anon Key, dan Kata Sandi Enkripsi.</li>
+        <li><strong>Identitas dan administrasi pasien:</strong> nama, nomor SEP, nomor rekam medis, tanggal masuk dan pulang, ruangan, serta dokter penanggung jawab pelayanan (DPJP).</li>
+        <li><strong>Data kesehatan dan berkas:</strong> informasi pada halaman atau dokumen e-RM yang diperlukan untuk pemeriksaan, status resume medis dan kelengkapan berkas, serta catatan yang dimasukkan pengguna.</li>
+        <li><strong>Identitas dan autentikasi pengguna:</strong> nama atau identitas pengedit yang dikonfigurasi, email dan password akun admin Supabase, token sesi, serta password yang digunakan untuk membaca catatan lama atau membuka dan menerbitkan dashboard. Password admin dikirim ke Supabase untuk autentikasi. Password pembaca digunakan di perangkat untuk membuka atau mengenkripsi snapshot.</li>
+        <li><strong>Konfigurasi dan data teknis:</strong> alamat Supabase, anon key, status sinkronisasi, pemetaan dokumen, dan alamat halaman atau dokumen e-Klaim/e-RM yang diperlukan untuk menjalankan fitur. Ekstensi tidak dirancang untuk mengumpulkan seluruh riwayat penjelajahan.</li>
+        <li><strong>Kontak dan data pilihan pengguna:</strong> nama dan nomor kontak admin yang dikonfigurasi untuk fitur WhatsApp, serta data yang dipilih pengguna untuk disalin atau disiapkan sebagai pesan.</li>
     </ul>
 
-    <h2>3. Penyimpanan dan Enkripsi Data</h2>
+    <h2>3. Cara data digunakan dan disimpan</h2>
+    <p>Data digunakan untuk menampilkan status pasien, mengelola catatan dan antrean sinkronisasi, mengambil data SEP serta DPJP, membantu pemeriksaan resume, dan menyusun dashboard sesuai bulan tanggal pulang. Ekstensi memproses data dari halaman dan dokumen yang digunakan dalam alur kerja tersebut.</p>
     <ul>
-        <li><strong>Penyimpanan Lokal (Local Device):</strong> Kata sandi enkripsi, riwayat penyalinan clipboard, dan preferensi pengaturan disimpan 100% secara lokal pada browser pengguna menggunakan <code>chrome.storage.local</code> dan tidak pernah dikirimkan ke pihak ketiga mana pun.</li>
-        <li><strong>Enkripsi Terdistribusi (Cloud Storage):</strong> Seluruh teks catatan medis yang dikirimkan ke cloud (database Supabase milik rumah sakit) dienkripsi terlebih dahulu di perangkat pengguna menggunakan algoritma kriptografi <strong>AES-GCM / RC4</strong>. Hanya pengguna yang memiliki kata sandi enkripsi yang sama yang dapat membaca isi catatan tersebut.</li>
+        <li><strong>Perangkat pengguna:</strong> konfigurasi, cache SEP, catatan, status, antrean, dan data dashboard dapat disimpan di penyimpanan lokal browser. Sebagian data dan catatan baru disimpan dalam bentuk teks biasa; tidak semua data lokal dienkripsi oleh ekstensi.</li>
+        <li><strong>Supabase:</strong> data SEP, DPJP, ruangan, status warning, catatan, dan data pendukung tertentu dapat disinkronkan dengan proyek Supabase yang dikonfigurasi. Penarikan pembaruan daftar dilakukan melalui tombol pengguna; perubahan tertentu dapat dikirim melalui antrean sinkronisasi. Catatan baru tidak dienkripsi oleh ekstensi sebelum disimpan di database. Catatan lama yang sebelumnya dienkripsi dapat dibaca menggunakan password lama.</li>
+        <li><strong>Dashboard:</strong> data disiapkan di perangkat. Saat admin memilih bulan dan menekan tombol penerbitan, snapshot bulan tersebut dienkripsi di perangkat dengan password pembaca dan dikirim melalui fungsi Supabase ke repositori GitHub untuk ditampilkan di GitHub Pages. Snapshot tidak diperbarui secara realtime atau diterbitkan otomatis.</li>
+    </ul>
+    <p>Saat fitur dashboard dan penandaan lengkap digunakan, admin diautentikasi melalui Supabase. Akses terhadap data pada tabel e-Klaim yang ada bergantung pada konfigurasi dan kebijakan proyek Supabase; beberapa alur lama menggunakan anon key dan tidak memiliki pembatasan per pengguna yang sama dengan dashboard admin.</p>
+
+    <h2>4. Penerima dan pembagian data</h2>
+    <ul>
+        <li><strong>Supabase:</strong> memproses autentikasi dan permintaan database, serta menjalankan fungsi penerbitan dashboard sesuai konfigurasi pengelola.</li>
+        <li><strong>GitHub dan GitHub Pages:</strong> menerima dan menyimpan file snapshot dashboard yang telah dienkripsi. Repositori dan file terenkripsinya dapat diakses publik. Orang yang memiliki file dan password pembaca dapat membuka isinya; versi file lama dapat tetap tersedia dalam riwayat GitHub.</li>
+        <li><strong>WhatsApp:</strong> jika pengguna memilih fitur Chat Admin, ekstensi membuka tautan WhatsApp yang berisi nomor tujuan dan teks yang disiapkan. Pengguna perlu memeriksa isi dan penerima sebelum mengirim pesan.</li>
+        <li><strong>Sistem rumah sakit:</strong> ekstensi berinteraksi dengan server e-Klaim dan e-RM yang digunakan dalam pekerjaan pengguna.</li>
+        <li><strong>Halaman kebijakan ini:</strong> browser mengakses GitHub Pages dan dapat meminta font dari Google Fonts; penyedia tersebut dapat menerima data teknis koneksi sesuai kebijakan masing-masing.</li>
+    </ul>
+    <p>Ekstensi tidak dirancang untuk menjual data pengguna, menggunakannya untuk iklan, atau menggunakannya untuk penilaian kredit. Penggunaan dan pembagian data dibatasi untuk menyediakan fungsi yang dijelaskan di sini dan keperluan operasional terkait.</p>
+
+    <h2>5. Keamanan dan batasan</h2>
+    <p>Snapshot dashboard yang diterbitkan dienkripsi dengan AES-GCM menggunakan kunci yang diturunkan dari password pembaca. Kekuatan password, pengelolaan akses Supabase, keamanan perangkat dan pengaturan jaringan tetap penting. Mengganti password tidak menghapus salinan snapshot lama dari riwayat repositori atau salinan yang sudah diunduh.</p>
+    <p>Ekstensi terhubung ke Supabase menggunakan HTTPS. Sebagian alamat e-Klaim/e-RM internal yang dikonfigurasi menggunakan HTTP; keamanan lalu lintas pada jaringan internal bergantung pada pengaturan jaringan dan sistem rumah sakit. Password pembaca dashboard tidak membatasi akses ke database Supabase.</p>
+
+    <h2>6. Penyimpanan, penghapusan, dan kontrol</h2>
+    <p>Saat fitur pengambilan data SEP digunakan, cache lokal tertentu untuk SEP lama dapat dibersihkan berdasarkan usia SEP sekitar 60 hari. Pembersihan tersebut tidak menghapus data dashboard lokal maupun data yang tersimpan di Supabase atau GitHub. Data lokal juga dapat dihapus melalui pengaturan browser atau dengan menghapus ekstensi; tindakan ini tidak menghapus salinan cloud.</p>
+    <p>Pengelola proyek mengatur masa simpan dan penghapusan data di Supabase, termasuk cadangan dan log layanan. Penghapusan file dari cabang utama GitHub tidak otomatis menghapus riwayat Git, cadangan, atau salinan yang sudah diperoleh penerima. Untuk permintaan akses, koreksi, atau penghapusan data, hubungi tim IT/Casemix RSBHHB.</p>
+
+    <h2>7. Izin browser</h2>
+    <ul>
+        <li><code>storage</code> dan <code>unlimitedStorage</code>: menyimpan pengaturan, cache, antrean, serta data dashboard di browser.</li>
+        <li><code>tabs</code> dan <code>scripting</code>: membuka dan mengelola tab yang digunakan dalam alur kerja, serta membantu pencarian pada halaman e-RM.</li>
+        <li><code>clipboardWrite</code>: mendukung penyalinan yang diminta pengguna pada fitur e-RM dan konfigurasi ekstensi.</li>
+        <li><strong>Izin host:</strong> mengakses alamat e-Klaim, e-RM, dan Supabase yang tercantum pada ekstensi. Izin tambahan dapat diminta untuk alamat Supabase yang dikonfigurasi pengguna.</li>
     </ul>
 
-    <h2>4. Penggunaan Izin Browser (Permissions)</h2>
-    <p>Ekstensi ini hanya meminta izin minimal yang diperlukan untuk beroperasi:</p>
-    <ul>
-        <li><code>storage</code>: Digunakan untuk menyimpan preferensi konfigurasi dan data cache secara lokal.</li>
-        <li><code>Host Permissions (http://172.16.0.5/* & http://172.16.0.3/*)</code>: Digunakan untuk menjalankan content script yang menyuntikkan tombol pembantu dan penanda warna pada antarmuka web e-Klaim dan e-RM internal rumah sakit.</li>
-    </ul>
-
-    <h2>5. Pihak Ketiga & Pembagian Data</h2>
-    <p>Kami <strong>TIDAK PERNAH</strong> menjual, menyewakan, membagikan, atau memperjualbelikan data apa pun dari ekstensi ini kepada pihak ketiga, pengiklan, atau penyedia analitik luar. Data hanya mengalir antara browser lokal pengguna dengan server database Supabase yang dikelola sendiri oleh tim rumah sakit.</p>
-
-    <h2>6. Hak Pengguna</h2>
-    <p>Pengguna memiliki kontrol penuh terhadap data lokal mereka. Seluruh data penyimpanan lokal dapat dihapus kapan saja melalui menu pengaturan browser atau dengan mengklik tombol "Reset Riwayat Salinan" pada panel ekstensi.</p>
-
-    <h2>7. Hubungi Kami</h2>
-    <p>Jika Anda memiliki pertanyaan terkait kebijakan privasi atau penggunaan ekstensi ini, silakan hubungi tim IT / Casemix RSBHHB atau kirimkan laporan melalui repositori proyek.</p>
+    <h2>8. Kontak dan perubahan kebijakan</h2>
+    <p>Untuk pertanyaan tentang data dan kebijakan ini, hubungi tim IT / Casemix RSBHHB atau sampaikan melalui <a href="https://github.com/syafrieyunizar/eklaim-helper">repositori proyek</a>. Kebijakan ini dapat diperbarui ketika cara kerja ekstensi berubah; tanggal pembaruan akan dicantumkan pada halaman ini.</p>
 
     <div class="footer">
-        &copy; 2026 Tim Casemix RSBHHB. Hak Cipta Dilindungi Undang-Undang.
+        &copy; 2026 Tim Casemix RSBHHB.
     </div>
 </div>
 
