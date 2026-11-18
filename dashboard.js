@@ -410,6 +410,25 @@
         try { await navigator.credentials.store(new PasswordCredential({ id: email, password })); } catch (_) { /* Browser can decline password storage. */ }
     }
 
+    const publicSessionKey = `eklaim_public_session_${publicMonth}`;
+    async function readPublicSnapshot() {
+        const response = await fetch(`dashboard-${EklaimSnapshot.monthCode(publicMonth)}.json`, { cache: 'no-store', credentials: 'omit' });
+        if (!response.ok) throw new Error(response.status === 404 ? 'Dashboard belum diterbitkan.' : 'Snapshot dashboard tidak dapat dimuat.');
+        return response.json();
+    }
+    function clearPublicSession() {
+        try { sessionStorage.removeItem(publicSessionKey); } catch (_) { /* Storage may be disabled. */ }
+    }
+    async function showPublicSnapshot(snapshot) {
+        const checked = EklaimSnapshot.validateMonth(snapshot, publicMonth);
+        records = checked.records;
+        publishedAt = checked.updatedAt;
+        source.value = 'shared';
+        $('dashboard-shell').hidden = false;
+        $('login-screen').hidden = true;
+        await load();
+    }
+
     $('login-form').addEventListener('submit', async event => {
         event.preventDefault();
         const button = event.currentTarget.querySelector('button[type="submit"]');
@@ -423,12 +442,11 @@
                 source.value = 'local';
             } else {
                 if (!publicMonth) throw new Error('Gunakan tautan dashboard untuk bulan yang diterbitkan pengelola.');
-                const response = await fetch(`dashboard-${EklaimSnapshot.monthCode(publicMonth)}.json`, { cache: 'no-store', credentials: 'omit' });
-                if (!response.ok) throw new Error(response.status === 404 ? 'Dashboard belum diterbitkan.' : 'Snapshot dashboard tidak dapat dimuat.');
-                const snapshot = EklaimSnapshot.validateMonth(await EklaimSnapshot.decrypt(await response.json(), $('login-password').value), publicMonth);
-                records = snapshot.records;
-                publishedAt = snapshot.updatedAt;
-                source.value = 'shared';
+                const unlocked = await EklaimSnapshot.unlockSession(await readPublicSnapshot(), $('login-password').value);
+                EklaimSnapshot.validateMonth(unlocked.result, publicMonth);
+                try { sessionStorage.setItem(publicSessionKey, JSON.stringify(unlocked.session)); } catch (_) { /* Login remains available without session storage. */ }
+                await showPublicSnapshot(unlocked.result);
+                return;
             }
             $('dashboard-shell').hidden = false;
             $('login-screen').hidden = true;
@@ -437,6 +455,7 @@
         finally { $('login-password').value = ''; button.disabled = false; }
     });
     $('logout').addEventListener('click', () => {
+        if (!isExtension) clearPublicSession();
         session = null; records = []; publishedAt = null; loadVersion++; render();
         $('dashboard-shell').hidden = true; $('login-screen').hidden = false;
     });
@@ -495,6 +514,20 @@
         $('refresh').hidden = true;
         $('publish').hidden = true;
         $('undated').hidden = true;
+        if (publicMonth) {
+            let saved;
+            try { saved = JSON.parse(sessionStorage.getItem(publicSessionKey) || 'null'); } catch (_) { clearPublicSession(); }
+            if (saved) {
+                const button = $('login-form').querySelector('button[type="submit"]');
+                button.disabled = true;
+                $('login-error').textContent = 'Sedang membuka dashboard, mohon tunggu…';
+                (async () => {
+                    try { await showPublicSnapshot(await EklaimSnapshot.restoreSession(await readPublicSnapshot(), saved)); }
+                    catch (_) { clearPublicSession(); $('login-error').textContent = 'Sesi tidak dapat dilanjutkan. Masukkan password kembali.'; }
+                    finally { button.disabled = false; }
+                })();
+            }
+        }
     }
 })();
 
