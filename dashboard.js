@@ -163,10 +163,7 @@
         groups.forEach(group => {
             const row = document.createElement('tr');
             const position = group.unassigned ? 0 : ++rank;
-            if (group.done < group.total || group.incomplete) {
-                if (position === 1) row.className = 'rank-first';
-                else if (position === 2) row.className = 'rank-second';
-            }
+            if (group.done < group.total) row.className = 'resume-incomplete';
             const doctorCell = cell(row, '');
             const doctorLabel = document.createElement('div');
             doctorLabel.className = 'doctor-label';
@@ -183,12 +180,13 @@
             doctorCell.replaceChildren(doctorLabel);
             const progressCell = cell(row, '');
             progressCell.className = 'progress-cell';
+            const completion = group.done < group.total ? Math.min(99, percent(group.done, group.total)) : percent(group.done, group.total);
             const heading = document.createElement('div');
             heading.className = 'progress-heading';
             const fraction = document.createElement('strong');
             fraction.textContent = `${group.done} / ${group.total}`;
             const value = document.createElement('span');
-            value.textContent = `${percent(group.done, group.total)}% selesai`;
+            value.textContent = `${completion}% selesai`;
             heading.append(fraction, value);
             const progress = document.createElement('div');
             progress.className = 'progress';
@@ -196,9 +194,9 @@
             progress.setAttribute('aria-label', `Penyelesaian resume ${group.doctor}`);
             progress.setAttribute('aria-valuemin', '0');
             progress.setAttribute('aria-valuemax', '100');
-            progress.setAttribute('aria-valuenow', String(percent(group.done, group.total)));
+            progress.setAttribute('aria-valuenow', String(completion));
             const bar = document.createElement('span');
-            bar.style.width = `${percent(group.done, group.total)}%`;
+            bar.style.width = `${completion}%`;
             progress.appendChild(bar);
             const outstanding = document.createElement('div');
             outstanding.className = 'resume-outstanding';
