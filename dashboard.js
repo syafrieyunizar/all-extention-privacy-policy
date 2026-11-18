@@ -335,6 +335,8 @@
         if (!chosenRecords().length) { notify('Tidak ada data dalam periode ini untuk dikirim.'); return; }
         $('publish-error').textContent = '';
         $('publish-password').value = '';
+        $('publish-new-password').value = '';
+        $('publish-confirm-password').value = '';
         $('publish-dialog').showModal();
     });
     $('publish-form').addEventListener('submit', async event => {
@@ -344,6 +346,7 @@
         $('publish-error').textContent = '';
         try {
             const password = $('publish-password').value;
+            const nextPassword = EklaimSnapshot.publishPassword(password, $('publish-new-password').value, $('publish-confirm-password').value);
             const selectedMonth = month.value;
             const code = EklaimSnapshot.monthCode(selectedMonth);
             const current = await EklaimDashboardAuth.publish(config, session, { action: 'read', month: selectedMonth });
@@ -351,7 +354,7 @@
             const fields = ['sep', 'rm', 'nama', 'ruangan', 'dpjp', 'tglMasuk', 'tglPulang', 'status', 'note', 'completeOverride'];
             const selected = chosenRecords().map(record => Object.fromEntries(fields.map(field => [field, record[field] ?? ''])));
             const snapshot = EklaimSnapshot.merge(previous.records, selected, new Date().toISOString(), selectedMonth);
-            const encrypted = await EklaimSnapshot.encrypt(snapshot, password);
+            const encrypted = await EklaimSnapshot.encrypt(snapshot, nextPassword);
             await EklaimDashboardAuth.publish(config, session, { action: 'write', month: selectedMonth, sha: current.sha, snapshot: encrypted });
             publishedAt = snapshot.updatedAt;
             const link = `https://syafrieyunizar.github.io/all-extention-privacy-policy/dashboard-${code}.html`;
@@ -362,7 +365,7 @@
             render();
             notify(`${selected.length} pasien diterbitkan. Dashboard publik akan menampilkan snapshot setelah GitHub Pages selesai memperbarui halaman.`);
         } catch (error) { $('publish-error').textContent = `Gagal menerbitkan: ${error.message}`; }
-        finally { $('publish-password').value = ''; button.disabled = false; }
+        finally { $('publish-password').value = ''; $('publish-new-password').value = ''; $('publish-confirm-password').value = ''; button.disabled = false; }
     });
 
     function showView(view) {
@@ -402,15 +405,21 @@
     $('refresh').addEventListener('click', load);
     document.querySelectorAll('.close-dialog').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
 
+    async function offerBrowserSave(email, password) {
+        if (typeof PasswordCredential !== 'function' || !navigator.credentials?.store) return;
+        try { await navigator.credentials.store(new PasswordCredential({ id: email, password })); } catch (_) { /* Browser can decline password storage. */ }
+    }
+
     $('login-form').addEventListener('submit', async event => {
         event.preventDefault();
         const button = event.currentTarget.querySelector('button[type="submit"]');
         button.disabled = true;
-        $('login-error').textContent = '';
+        $('login-error').textContent = 'Sedang membuka dashboard, mohon tunggu…';
         try {
             if (isExtension) {
                 session = await EklaimDashboardAuth.login(config, $('login-email').value.trim(), $('login-password').value);
                 if (session.role !== 'admin') { session = null; throw new Error('Akun ini bukan pengelola dashboard.'); }
+                await offerBrowserSave($('login-email').value.trim(), $('login-password').value);
                 source.value = 'local';
             } else {
                 if (!publicMonth) throw new Error('Gunakan tautan dashboard untuk bulan yang diterbitkan pengelola.');
@@ -479,7 +488,7 @@
         $('login-form').appendChild($('open-settings'));
         chrome.storage.local.get(['eklaim_supabase_url', 'eklaim_supabase_key', 'eklaim_dashboard_admin_email']).then(settings => {
             config = { url: settings.eklaim_supabase_url || '', key: settings.eklaim_supabase_key || '' };
-            $('login-email').value = settings.eklaim_dashboard_admin_email || '';
+            if (!$('login-email').value && settings.eklaim_dashboard_admin_email) $('login-email').value = settings.eklaim_dashboard_admin_email;
         });
     } else {
         $('open-settings').hidden = true;

@@ -9,13 +9,19 @@
         return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations, hash: 'SHA-256' }, material, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
     }
     async function encrypt(snapshot, password) {
-        if (password.length < 16) throw new Error('Password pembaca harus minimal 16 karakter.');
+        if (password.length < 8) throw new Error('Password pembaca harus minimal 8 karakter.');
         const plain = enc.encode(JSON.stringify(snapshot));
         if (plain.length > 500000) throw new Error('Snapshot terlalu besar untuk diterbitkan; data lama tetap aman.');
         const salt = crypto.getRandomValues(new Uint8Array(16));
         const iv = crypto.getRandomValues(new Uint8Array(12));
         const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await key(password, salt), plain);
         return { v: 1, salt: encode(salt), iv: encode(iv), data: encode(new Uint8Array(data)) };
+    }
+    function publishPassword(current, next, confirmation) {
+        if (!next && !confirmation) return current;
+        if (next.length < 8) throw new Error('Password baru harus minimal 8 karakter.');
+        if (next !== confirmation) throw new Error('Konfirmasi password baru tidak cocok.');
+        return next;
     }
     async function decrypt(snapshot, password) {
         try {
@@ -50,5 +56,6 @@
         updates.forEach(record => records.set(record.sep, record));
         return { month, updatedAt, records: [...records.values()] };
     }
-    root.EklaimSnapshot = { encrypt, decrypt, merge, monthCode, fileMonth, validateMonth };
+    root.EklaimSnapshot = { encrypt, decrypt, merge, monthCode, fileMonth, validateMonth, publishPassword };
 })(globalThis);
+
