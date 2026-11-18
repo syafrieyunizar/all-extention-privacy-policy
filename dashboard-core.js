@@ -60,6 +60,10 @@
         };
     }
 
+    function isComplete(record) {
+        return record.status === 'sudah' && (record.completeOverride === true || !noteText(record.note));
+    }
+
     function summarize(records) {
         const groups = new Map();
         records.forEach(record => {
@@ -69,8 +73,8 @@
             group.total++;
             if (record.status === 'sudah') {
                 group.done++;
-                if (noteText(record.note)) group.incomplete++;
-                else group.complete++;
+                if (isComplete(record)) group.complete++;
+                else group.incomplete++;
             } else if (record.status === 'belum') group.notDone++;
             else group.unchecked++;
             groups.set(key, group);
@@ -92,7 +96,7 @@
         const direction = options.sortDirection === 'desc' ? -1 : 1;
         function value(record) {
             if (key === 'status') return record.status === 'sudah' ? 'Sudah' : record.status === 'belum' ? 'Belum' : '';
-            if (key === 'completeness') return record.status === 'sudah' ? (noteText(record.note) ? 'Belum lengkap' : 'Lengkap') : '';
+            if (key === 'completeness') return record.status === 'sudah' ? (isComplete(record) ? 'Lengkap' : 'Belum lengkap') : '';
             return String(record[key] || '').trim();
         }
         return filtered.sort((a, b) => {
@@ -102,5 +106,6 @@
         });
     }
 
-    root.EklaimDashboard = { date, noteText, doctorKey, resolve, summarize, patientRows };
+    root.EklaimDashboard = { date, noteText, doctorKey, resolve, summarize, patientRows, isComplete };
 })(globalThis);
+

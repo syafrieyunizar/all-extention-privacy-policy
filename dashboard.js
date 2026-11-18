@@ -205,7 +205,7 @@
             progressCell.replaceChildren(heading, progress, outstanding);
             cell(row, `${group.complete} / ${group.done}`);
             const incompleteCell = cell(row, '');
-            const details = chosen.filter(record => (core.doctorKey(record.dpjp) || core.doctorKey('DPJP belum tersedia')) === core.doctorKey(group.doctor) && record.status === 'sudah' && core.noteText(record.note));
+            const details = chosen.filter(record => (core.doctorKey(record.dpjp) || core.doctorKey('DPJP belum tersedia')) === core.doctorKey(group.doctor) && record.status === 'sudah' && !core.isComplete(record));
             if (details.length) incompleteCell.replaceChildren(detailButton(`${group.incomplete} / ${group.done}`, details, `Berkas perlu dilengkapi · ${group.doctor}`));
             else incompleteCell.textContent = `0 / ${group.done}`;
             doctorBody.appendChild(row);
@@ -232,7 +232,7 @@
             const statusCell = cell(row, '');
             statusCell.replaceChildren(resumeStatus(record));
             const noteCell = cell(row, '');
-            if (core.noteText(record.note)) noteCell.replaceChildren(detailButton(record.status === 'sudah' ? 'Belum lengkap' : 'Lihat catatan', [record], `Catatan · ${record.nama || record.sep}`));
+            if (core.noteText(record.note)) noteCell.replaceChildren(detailButton(core.isComplete(record) ? 'Lengkap · Lihat catatan' : record.status === 'sudah' ? 'Belum lengkap' : 'Lihat catatan', [record], `Catatan · ${record.nama || record.sep}`));
             else noteCell.replaceChildren(badge(record.status === 'sudah' ? 'Lengkap' : 'Menunggu resume', record.status === 'sudah' ? 'complete' : 'pending'));
             body.appendChild(row);
         });
@@ -344,8 +344,8 @@
             const code = EklaimSnapshot.monthCode(selectedMonth);
             const current = await EklaimDashboardAuth.publish(config, session, { action: 'read', month: selectedMonth });
             const previous = current.snapshot ? EklaimSnapshot.validateMonth(await EklaimSnapshot.decrypt(current.snapshot, password), selectedMonth) : { records: [] };
-            const fields = ['sep', 'rm', 'nama', 'ruangan', 'dpjp', 'tglMasuk', 'tglPulang', 'status', 'note'];
-            const selected = chosenRecords().map(record => Object.fromEntries(fields.map(field => [field, record[field] || ''])));
+            const fields = ['sep', 'rm', 'nama', 'ruangan', 'dpjp', 'tglMasuk', 'tglPulang', 'status', 'note', 'completeOverride'];
+            const selected = chosenRecords().map(record => Object.fromEntries(fields.map(field => [field, record[field] ?? ''])));
             const snapshot = EklaimSnapshot.merge(previous.records, selected, new Date().toISOString(), selectedMonth);
             const encrypted = await EklaimSnapshot.encrypt(snapshot, password);
             await EklaimDashboardAuth.publish(config, session, { action: 'write', month: selectedMonth, sha: current.sha, snapshot: encrypted });
@@ -484,3 +484,4 @@
         $('undated').hidden = true;
     }
 })();
+
