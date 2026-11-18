@@ -13,6 +13,11 @@
     let undated = false;
     let renderTimer;
     let loadVersion = 0;
+    let sortKey = 'tglPulang';
+    let sortDirection = 'asc';
+    const selectedDoctors = new Set();
+    const selectedRooms = new Set();
+    let filterSignature = '';
 
     const today = new Date();
     month.value = publicMonth || `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
@@ -148,10 +153,9 @@
         $('undated').firstChild.textContent = undated ? 'Kembali ke bulan ' : 'Tanggal belum tersedia ';
         $('publish').textContent = 'Kirim ke Supabase';
         $('publish').hidden = source.value !== 'local';
-        $('source-caption').textContent = source.value === 'local'
-            ? 'Data tersimpan di perangkat. Pengiriman dan penerbitan hanya dilakukan saat Anda menekan tombol kirim.'
-            : 'Snapshot terakhir yang diterbitkan pengelola; tidak diperbarui otomatis.';
-        $('last-published').textContent = publishedAt ? `Terakhir diperbarui: ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(publishedAt))}` : '';
+        $('source-caption').textContent = publishedAt
+            ? `Terakhir diperbarui: ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(publishedAt))}. Tidak diperbarui secara realtime.`
+            : source.value === 'local' ? 'Data tersimpan di perangkat. Kirim secara manual untuk memperbarui dashboard bersama.' : 'Waktu pembaruan belum tersedia. Tidak diperbarui secara realtime.';
 
         const doctorBody = $('doctors');
         doctorBody.replaceChildren();
@@ -187,9 +191,16 @@
         });
         $('doctors-empty').hidden = groups.length > 0;
 
-        const query = $('search').value.trim().toLocaleLowerCase('id');
-        const filtered = chosen.filter(record => [record.nama, record.sep, record.rm, record.dpjp, record.ruangan].some(value => String(value || '').toLocaleLowerCase('id').includes(query)));
-        filtered.sort((a, b) => (a.tglPulang || '').localeCompare(b.tglPulang || '') || String(a.nama || '').localeCompare(String(b.nama || ''), 'id') || a.sep.localeCompare(b.sep));
+        updateFilterOptions(chosen);
+        const query = $('search').value.trim();
+        const filtered = core.patientRows(chosen, { query, doctors: selectedDoctors, rooms: selectedRooms, sortKey, sortDirection });
+        $('patient-result-count').textContent = `${filtered.length} dari ${chosen.length} pasien`;
+        document.querySelectorAll('[data-sort-header]').forEach(header => {
+            const active = header.dataset.sortHeader === sortKey;
+            if (active) header.setAttribute('aria-sort', sortDirection === 'asc' ? 'ascending' : 'descending');
+            else header.removeAttribute('aria-sort');
+            header.querySelector('span').textContent = active ? (sortDirection === 'asc' ? '↑' : '↓') : '↕';
+        });
         const body = $('patients');
         body.replaceChildren();
         filtered.forEach(record => {
@@ -200,18 +211,60 @@
             const statusCell = cell(row, '');
             statusCell.replaceChildren(resumeStatus(record));
             const noteCell = cell(row, '');
-            if (core.noteText(record.note)) noteCell.replaceChildren(detailButton('Lihat catatan', [record], `Catatan · ${record.nama || record.sep}`));
+            if (core.noteText(record.note)) noteCell.replaceChildren(detailButton(record.status === 'sudah' ? 'Belum lengkap' : 'Lihat catatan', [record], `Catatan · ${record.nama || record.sep}`));
             else noteCell.replaceChildren(badge(record.status === 'sudah' ? 'Lengkap' : 'Menunggu resume', record.status === 'sudah' ? 'complete' : 'pending'));
             body.appendChild(row);
         });
         $('patients-empty').hidden = filtered.length > 0;
         const otherMonths = source.value === 'local' && !undated
             ? records.filter(record => record.tglPulang && !record.tglPulang.startsWith(month.value)).length : 0;
-        $('patients-empty').textContent = query
-            ? 'Tidak ada pasien yang cocok dengan pencarian.'
+        $('patients-empty').textContent = query || selectedDoctors.size || selectedRooms.size
+            ? 'Tidak ada pasien yang cocok dengan pencarian atau filter.'
             : otherMonths && !chosen.length
                 ? `Tidak ada pasien di bulan ini. Ada ${otherMonths} pasien pada bulan lain; pilih bulan tanggal pulangnya.`
                 : 'Belum ada pasien pada tampilan ini. Buka resume di e-RM untuk menambah data.';
+    }
+
+    function updateFilterOptions(chosen) {
+        const collect = (field, fallback) => {
+            const options = new Map();
+            chosen.forEach(record => {
+                const label = String(record[field] || '').trim().replace(/\s+/g, ' ') || fallback;
+                const key = core.doctorKey(label);
+                if (!options.has(key)) options.set(key, label);
+            });
+            return [...options].sort((a, b) => a[1].localeCompare(b[1], 'id'));
+        };
+        const doctors = collect('dpjp', 'DPJP belum tersedia');
+        const rooms = collect('ruangan', 'Ruangan belum tersedia');
+        const signature = JSON.stringify([doctors, rooms]);
+        if (signature !== filterSignature) {
+            filterSignature = signature;
+            function rebuild(listId, values, selected) {
+                const list = $(listId);
+                list.replaceChildren();
+                const available = new Set(values.map(([key]) => key));
+                [...selected].forEach(key => { if (!available.has(key)) selected.delete(key); });
+                values.forEach(([key, label]) => {
+                    const item = document.createElement('label');
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.setAttribute('aria-label', label);
+                    input.value = key;
+                    input.checked = selected.has(key);
+                    input.addEventListener('change', () => { if (input.checked) selected.add(key); else selected.delete(key); render(); });
+                    const text = document.createElement('span');
+                    text.textContent = label;
+                    item.append(input, text);
+                    list.appendChild(item);
+                });
+                if (!values.length) list.textContent = 'Tidak ada pilihan pada periode ini.';
+            }
+            rebuild('doctor-filter-list', doctors, selectedDoctors);
+            rebuild('room-filter-list', rooms, selectedRooms);
+        }
+        $('doctor-filter-count').textContent = selectedDoctors.size ? `${selectedDoctors.size} dipilih` : 'Semua';
+        $('room-filter-count').textContent = selectedRooms.size ? `${selectedRooms.size} dipilih` : 'Semua';
     }
 
     function sendMessage(payload) {
@@ -286,6 +339,36 @@
         } catch (error) { $('publish-error').textContent = `Gagal menerbitkan: ${error.message}`; }
         finally { $('publish-password').value = ''; button.disabled = false; }
     });
+
+    function showView(view) {
+        const doctors = view === 'doctors';
+        $('doctors-view').hidden = !doctors;
+        $('patients-view').hidden = doctors;
+        for (const [id, active] of [['nav-doctors', doctors], ['nav-patients', !doctors]]) {
+            const button = $(id);
+            button.classList.toggle('active', active);
+            if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
+        }
+    }
+    $('nav-doctors').addEventListener('click', () => showView('doctors'));
+    $('nav-patients').addEventListener('click', () => showView('patients'));
+    $('sidebar-toggle').addEventListener('click', () => {
+        const collapsed = $('sidebar').classList.toggle('collapsed');
+        $('sidebar-toggle').setAttribute('aria-expanded', String(!collapsed));
+        $('sidebar-toggle').setAttribute('aria-label', collapsed ? 'Perluas navigasi' : 'Ciutkan navigasi');
+    });
+    document.querySelectorAll('[data-sort]').forEach(button => button.addEventListener('click', () => {
+        if (sortKey === button.dataset.sort) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        else { sortKey = button.dataset.sort; sortDirection = 'asc'; }
+        render();
+    }));
+    document.querySelectorAll('[data-clear-filter]').forEach(button => button.addEventListener('click', () => {
+        const doctors = button.dataset.clearFilter === 'doctor';
+        (doctors ? selectedDoctors : selectedRooms).clear();
+        const list = $(doctors ? 'doctor-filter-list' : 'room-filter-list');
+        list.querySelectorAll('input').forEach(input => { input.checked = false; });
+        render();
+    }));
 
     month.addEventListener('change', () => { undated = false; $('published-link').hidden = true; publishedAt = null; render(); });
     source.addEventListener('change', () => { undated = false; load(); });

@@ -77,5 +77,29 @@
         return [...groups.values()].sort((a, b) => a.doctor.localeCompare(b.doctor, 'id'));
     }
 
-    root.EklaimDashboard = { date, noteText, doctorKey, resolve, summarize };
+    function patientRows(records, options = {}) {
+        const query = String(options.query || '').trim().toLocaleLowerCase('id');
+        const doctors = options.doctors || new Set();
+        const rooms = options.rooms || new Set();
+        const filtered = records.filter(record => {
+            const doctor = doctorKey(record.dpjp || 'DPJP belum tersedia');
+            const room = doctorKey(record.ruangan || 'Ruangan belum tersedia');
+            return (!doctors.size || doctors.has(doctor)) && (!rooms.size || rooms.has(room)) &&
+                (!query || [record.nama, record.sep, record.rm, record.dpjp, record.ruangan].some(value => String(value || '').toLocaleLowerCase('id').includes(query)));
+        });
+        const key = options.sortKey || 'tglPulang';
+        const direction = options.sortDirection === 'desc' ? -1 : 1;
+        function value(record) {
+            if (key === 'status') return record.status === 'sudah' ? 'Sudah' : record.status === 'belum' ? 'Belum' : '';
+            if (key === 'completeness') return record.status === 'sudah' ? (noteText(record.note) ? 'Belum lengkap' : 'Lengkap') : '';
+            return String(record[key] || '').trim();
+        }
+        return filtered.sort((a, b) => {
+            const av = value(a), bv = value(b);
+            if (!av || !bv) return av ? -1 : bv ? 1 : String(a.sep || '').localeCompare(String(b.sep || ''));
+            return direction * av.localeCompare(bv, 'id', { numeric: true, sensitivity: 'base' }) || String(a.nama || '').localeCompare(String(b.nama || ''), 'id') || String(a.sep || '').localeCompare(String(b.sep || ''));
+        });
+    }
+
+    root.EklaimDashboard = { date, noteText, doctorKey, resolve, summarize, patientRows };
 })(globalThis);

@@ -18,46 +18,49 @@
   </section>
   <div class="shell" id="dashboard-shell" hidden>
     <header class="topbar">
-      <div class="brand"><span class="brand-mark" aria-hidden="true">+</span><span>E-Klaim <strong>Helper</strong></span></div>
-      <div class="top-actions">
-        <span class="privacy-label">Data pasien · jaga akses</span><button id="logout" class="button secondary" type="button">Keluar</button>
-        <button class="button secondary" id="open-settings" type="button">Pengaturan</button>
-      </div>
+      <div class="header-title"><button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="Ciutkan navigasi" aria-expanded="true" aria-controls="sidebar">☰</button><span>Perkembangan Resume Medis</span></div>
+      <div class="top-actions"><button id="logout" class="button secondary" type="button">Keluar</button><button class="button secondary" id="open-settings" type="button">Pengaturan</button></div>
     </header>
-
-    <main>
-      <section class="page-heading">
-        <div><p class="eyebrow">PEMANTAUAN E-RM</p><h1>Resume medis</h1><p class="intro">Pantau resume dan kelengkapan berkas yang telah dibuka melalui ekstensi.</p></div>
-        <div class="controls">
+    <div class="app-layout">
+      <aside id="sidebar" class="sidebar" aria-label="Navigasi dashboard">
+        <nav class="sidebar-nav" aria-label="Halaman dashboard">
+          <button id="nav-doctors" class="nav-item active" type="button" aria-current="page" title="Kinerja per DPJP"><span class="nav-icon" aria-hidden="true">◫</span><span class="nav-label">Kinerja per DPJP</span></button>
+          <button id="nav-patients" class="nav-item" type="button" title="Rincian Pasien"><span class="nav-icon" aria-hidden="true">▤</span><span class="nav-label">Rincian Pasien</span></button>
+        </nav>
+      </aside>
+      <main id="dashboard-main">
+        <div class="dashboard-controls controls">
           <label>Bulan pulang <input id="month" type="month"></label>
           <label id="source-label" hidden>Sumber data <select id="source"><option value="shared">Data bersama</option><option value="local">Perangkat ini (pengelola)</option></select></label>
-          <button class="button secondary" id="refresh" type="button">Muat ulang</button>
-          <button class="button primary" id="publish" type="button">Kirim ke Supabase</button>
+          <button class="button secondary" id="refresh" type="button">Muat ulang</button><button class="button primary" id="publish" type="button">Kirim ke Supabase</button>
         </div>
-      </section>
-
-      <div class="notice"><span class="notice-dot"></span><span id="source-caption">Data tersimpan di perangkat ini. Pengiriman ke Supabase dilakukan secara manual.</span></div>
-      <p id="last-published" class="message" role="status"></p><p id="published-link" class="message" hidden>Tautan bulan ini: <a id="published-url" target="_blank" rel="noopener noreferrer"></a></p><p id="message" class="message" role="status" aria-live="polite"></p>
-
-      <section class="metrics" aria-label="Ringkasan bulan">
-        <article class="metric"><span class="metric-label">Total pasien</span><strong id="total">0</strong><span class="metric-note">Pasien dalam periode</span></article>
-        <article class="metric"><span class="metric-label">Resume selesai</span><strong id="done">0 <small>/ 0</small></strong><span class="metric-note" id="done-percent">0% dari seluruh pasien</span></article>
-        <article class="metric"><span class="metric-label">Berkas lengkap</span><strong id="complete">0 <small>/ 0</small></strong><span class="metric-note">Dari pasien dengan resume selesai</span></article>
-        <article class="metric"><span class="metric-label">Perlu dilengkapi</span><strong id="incomplete">0</strong><span class="metric-note">Resume selesai, masih ada catatan</span></article>
-      </section>
-
-      <section class="panel">
-        <div class="section-heading"><div><p class="eyebrow">KINERJA DOKTER</p><h2>Penyelesaian per DPJP</h2><p>Persentase dihitung dari pasien yang tercatat pada periode ini.</p></div><span class="count-pill" id="doctor-count">0 dokter</span></div>
-        <div class="table-wrap"><table class="doctor-table"><thead><tr><th>Dokter DPJP</th><th>Resume medis</th><th>Berkas lengkap</th><th>Perlu dilengkapi</th></tr></thead><tbody id="doctors"></tbody></table></div>
-        <p class="empty" id="doctors-empty" hidden>Belum ada data dokter untuk periode ini.</p>
-      </section>
-
-      <section class="panel patients-panel">
-        <div class="section-heading"><div><p class="eyebrow">RINCIAN PASIEN</p><h2>Daftar pasien</h2><p>Urut berdasarkan tanggal pulang. Pengelola dapat memperbarui status pada data perangkat.</p></div><div class="patient-controls"><label class="search-label"><span class="sr-only">Cari pasien atau DPJP</span><input id="search" type="search" placeholder="Cari nama, SEP, RM, atau DPJP"></label><button id="undated" class="button secondary" type="button">Tanggal belum tersedia <span id="undated-count">0</span></button></div></div>
-        <div class="table-wrap"><table class="patient-table"><thead><tr><th>Masuk</th><th>Pulang</th><th>Nomor SEP</th><th>Nama</th><th>Nomor RM</th><th>Ruangan</th><th>DPJP</th><th>Resume medis</th><th>Kelengkapan berkas</th></tr></thead><tbody id="patients"></tbody></table></div>
-        <p class="empty" id="patients-empty" hidden>Belum ada pasien pada tampilan ini. Buka resume di e-RM untuk menambah data.</p>
-      </section>
-    </main>
+        <div class="notice"><span class="notice-dot" aria-hidden="true"></span><span id="source-caption">Data tersimpan di perangkat ini.</span></div>
+        <p id="published-link" class="message" hidden>Tautan bulan ini: <a id="published-url" target="_blank" rel="noopener noreferrer"></a></p><p id="message" class="message" role="status" aria-live="polite"></p>
+        <section id="doctors-view" aria-labelledby="doctors-heading">
+          <section class="panel doctors-panel">
+            <div class="section-heading"><div><p class="eyebrow">KINERJA DOKTER</p><h1 id="doctors-heading">Penyelesaian per DPJP</h1><p>Persentase dihitung dari pasien yang tercatat pada periode ini.</p></div><span class="count-pill" id="doctor-count">0 dokter</span></div>
+            <div class="table-wrap"><table class="doctor-table"><thead><tr><th>Dokter DPJP</th><th>Resume medis</th><th>Berkas lengkap</th><th>Perlu dilengkapi</th></tr></thead><tbody id="doctors"></tbody></table></div>
+            <p class="empty" id="doctors-empty" hidden>Belum ada data dokter untuk periode ini.</p>
+          </section>
+          <section class="metrics" aria-label="Ringkasan bulan">
+            <article class="metric"><span class="metric-label">Total pasien</span><strong id="total">0</strong><span class="metric-note">Pasien dalam periode</span></article>
+            <article class="metric"><span class="metric-label">Resume selesai</span><strong id="done">0 <small>/ 0</small></strong><span class="metric-note" id="done-percent">0% dari seluruh pasien</span></article>
+            <article class="metric"><span class="metric-label">Berkas lengkap</span><strong id="complete">0 <small>/ 0</small></strong><span class="metric-note">Dari pasien dengan resume selesai</span></article>
+            <article class="metric"><span class="metric-label">Perlu dilengkapi</span><strong id="incomplete">0</strong><span class="metric-note">Resume selesai, masih ada catatan</span></article>
+          </section>
+        </section>
+        <section id="patients-view" class="panel patients-panel" aria-labelledby="patients-heading" hidden>
+          <div class="section-heading"><div><p class="eyebrow">RINCIAN PASIEN</p><h1 id="patients-heading">Daftar pasien</h1><p>Pilih judul kolom untuk mengurutkan data.</p></div><div class="patient-controls"><label class="search-label"><span class="sr-only">Cari pasien atau DPJP</span><input id="search" type="search" placeholder="Cari nama, SEP, RM, atau DPJP"></label><button id="undated" class="button secondary" type="button">Tanggal belum tersedia <span id="undated-count">0</span></button></div></div>
+          <div class="filter-bar" aria-label="Filter pasien">
+            <details class="filter-menu" id="doctor-filter"><summary>Dokter DPJP <span id="doctor-filter-count">Semua</span></summary><div class="filter-popover"><div class="filter-list" id="doctor-filter-list"></div><button class="filter-clear" type="button" data-clear-filter="doctor">Tampilkan semua</button></div></details>
+            <details class="filter-menu" id="room-filter"><summary>Ruangan <span id="room-filter-count">Semua</span></summary><div class="filter-popover"><div class="filter-list" id="room-filter-list"></div><button class="filter-clear" type="button" data-clear-filter="room">Tampilkan semua</button></div></details>
+            <span id="patient-result-count" class="filter-result" aria-live="polite"></span>
+          </div>
+          <div class="table-wrap"><table class="patient-table"><thead><tr><th data-sort-header="tglMasuk"><button class="sort-button" type="button" data-sort="tglMasuk">Masuk <span aria-hidden="true"></span></button></th><th data-sort-header="tglPulang"><button class="sort-button" type="button" data-sort="tglPulang">Pulang <span aria-hidden="true"></span></button></th><th>Nomor SEP</th><th>Nama</th><th>Nomor RM</th><th data-sort-header="ruangan"><button class="sort-button" type="button" data-sort="ruangan">Ruangan <span aria-hidden="true"></span></button></th><th data-sort-header="dpjp"><button class="sort-button" type="button" data-sort="dpjp">DPJP <span aria-hidden="true"></span></button></th><th data-sort-header="status"><button class="sort-button" type="button" data-sort="status">Resume medis <span aria-hidden="true"></span></button></th><th data-sort-header="completeness"><button class="sort-button" type="button" data-sort="completeness">Kelengkapan berkas <span aria-hidden="true"></span></button></th></tr></thead><tbody id="patients"></tbody></table></div>
+          <p class="empty" id="patients-empty" hidden>Belum ada pasien pada tampilan ini.</p>
+        </section>
+      </main>
+    </div>
   </div>
 
   <dialog id="details-dialog" aria-labelledby="details-title"><div class="dialog-head"><div><p class="eyebrow">RINCIAN BERKAS</p><h2 id="details-title">Catatan</h2></div><button class="icon-button close-dialog" type="button" aria-label="Tutup">×</button></div><div id="details-body" class="details-body"></div><div class="dialog-footer"><button class="button secondary close-dialog" type="button">Tutup</button></div></dialog>
