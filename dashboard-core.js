@@ -65,16 +65,17 @@
         records.forEach(record => {
             const doctor = String(record.dpjp || '').trim().replace(/\s+/g, ' ') || 'DPJP belum tersedia';
             const key = doctorKey(doctor);
-            const group = groups.get(key) || { doctor, total: 0, done: 0, complete: 0, incomplete: 0 };
+            const group = groups.get(key) || { doctor, unassigned: !String(record.dpjp || '').trim(), total: 0, done: 0, notDone: 0, unchecked: 0, complete: 0, incomplete: 0 };
             group.total++;
             if (record.status === 'sudah') {
                 group.done++;
                 if (noteText(record.note)) group.incomplete++;
                 else group.complete++;
-            }
+            } else if (record.status === 'belum') group.notDone++;
+            else group.unchecked++;
             groups.set(key, group);
         });
-        return [...groups.values()].sort((a, b) => a.doctor.localeCompare(b.doctor, 'id'));
+        return [...groups.values()].sort((a, b) => Number(a.unassigned) - Number(b.unassigned) || (b.notDone * a.total - a.notDone * b.total) || a.doctor.localeCompare(b.doctor, 'id'));
     }
 
     function patientRows(records, options = {}) {

@@ -159,9 +159,26 @@
 
         const doctorBody = $('doctors');
         doctorBody.replaceChildren();
+        let rank = 0;
         groups.forEach(group => {
             const row = document.createElement('tr');
-            cell(row, group.doctor);
+            const position = group.unassigned ? 0 : ++rank;
+            if (position === 1) row.className = 'rank-first';
+            else if (position === 2) row.className = 'rank-second';
+            const doctorCell = cell(row, '');
+            const doctorLabel = document.createElement('div');
+            doctorLabel.className = 'doctor-label';
+            if (position) {
+                const rankBadge = document.createElement('span');
+                rankBadge.className = 'rank-badge';
+                rankBadge.textContent = String(position);
+                rankBadge.setAttribute('aria-label', `Peringkat ${position}`);
+                doctorLabel.appendChild(rankBadge);
+            }
+            const doctorName = document.createElement('span');
+            doctorName.textContent = group.doctor;
+            doctorLabel.appendChild(doctorName);
+            doctorCell.replaceChildren(doctorLabel);
             const progressCell = cell(row, '');
             progressCell.className = 'progress-cell';
             const heading = document.createElement('div');
@@ -169,7 +186,7 @@
             const fraction = document.createElement('strong');
             fraction.textContent = `${group.done} / ${group.total}`;
             const value = document.createElement('span');
-            value.textContent = `${percent(group.done, group.total)}%`;
+            value.textContent = `${percent(group.done, group.total)}% selesai`;
             heading.append(fraction, value);
             const progress = document.createElement('div');
             progress.className = 'progress';
@@ -181,7 +198,11 @@
             const bar = document.createElement('span');
             bar.style.width = `${percent(group.done, group.total)}%`;
             progress.appendChild(bar);
-            progressCell.replaceChildren(heading, progress);
+            const outstanding = document.createElement('div');
+            outstanding.className = 'resume-outstanding';
+            outstanding.textContent = `Belum: ${group.notDone} / ${group.total} (${percent(group.notDone, group.total)}%)` +
+                (group.unchecked ? ` · ${group.unchecked} belum diperiksa` : '');
+            progressCell.replaceChildren(heading, progress, outstanding);
             cell(row, `${group.complete} / ${group.done}`);
             const incompleteCell = cell(row, '');
             const details = chosen.filter(record => (core.doctorKey(record.dpjp) || core.doctorKey('DPJP belum tersedia')) === core.doctorKey(group.doctor) && record.status === 'sudah' && core.noteText(record.note));
