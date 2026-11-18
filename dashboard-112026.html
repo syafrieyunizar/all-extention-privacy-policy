@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard Resume Medis</title>
-  <link rel="stylesheet" href="dashboard.css?v=20261118-complete1">
+  <link rel="stylesheet" href="dashboard.css?v=20261118-rank2">
 </head>
 <body>
   <section id="login-screen" class="login-screen" aria-labelledby="login-title">
@@ -13,19 +13,19 @@
       <p>Masukkan password untuk membuka dashboard.</p>
       <div class="settings-fields"><label id="login-email-label" hidden>Email akun pengelola<input id="login-email" type="email" autocomplete="username"></label><label>Password<input id="login-password" type="password" autocomplete="current-password" required></label></div>
       <p id="login-error" class="error" role="alert"></p><button class="button primary" type="submit">Masuk</button>
-      
+
     </form>
   </section>
   <div class="shell" id="dashboard-shell" hidden>
     <header class="topbar">
-      <div class="header-title"><button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="Ciutkan navigasi" aria-expanded="true" aria-controls="sidebar">☰</button><span>Perkembangan Resume Medis</span></div>
+      <div class="header-title"><button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="Perluas navigasi" aria-expanded="false" aria-controls="sidebar">☰</button><span>Perkembangan Resume Medis</span></div>
       <div class="top-actions"><button id="logout" class="button secondary" type="button">Keluar</button><button class="button secondary" id="open-settings" type="button">Pengaturan</button></div>
     </header>
     <div class="app-layout">
-      <aside id="sidebar" class="sidebar" aria-label="Navigasi dashboard">
+      <aside id="sidebar" class="sidebar collapsed" aria-label="Navigasi dashboard">
         <nav class="sidebar-nav" aria-label="Halaman dashboard">
-          <button id="nav-doctors" class="nav-item active" type="button" aria-current="page" title="Kinerja per DPJP"><span class="nav-icon" aria-hidden="true">◫</span><span class="nav-label">Kinerja per DPJP</span></button>
-          <button id="nav-patients" class="nav-item" type="button" title="Rincian Pasien"><span class="nav-icon" aria-hidden="true">▤</span><span class="nav-label">Rincian Pasien</span></button>
+          <button id="nav-doctors" class="nav-item active" type="button" aria-current="page" title="Kinerja per DPJP"><span class="nav-icon" aria-hidden="true">🩺</span><span class="nav-label">Kinerja per DPJP</span></button>
+          <button id="nav-patients" class="nav-item" type="button" title="Rincian Pasien"><span class="nav-icon" aria-hidden="true">🚑</span><span class="nav-label">Rincian Pasien</span></button>
         </nav>
       </aside>
       <main id="dashboard-main">
@@ -38,7 +38,7 @@
         <p id="published-link" class="message" hidden>Tautan bulan ini: <a id="published-url" target="_blank" rel="noopener noreferrer"></a></p><p id="message" class="message" role="status" aria-live="polite"></p>
         <section id="doctors-view" aria-labelledby="doctors-heading">
           <section class="panel doctors-panel">
-            <div class="section-heading"><div><p class="eyebrow">KINERJA DOKTER</p><h1 id="doctors-heading">Penyelesaian per DPJP</h1><p>Diurutkan berdasarkan persentase resume belum dari seluruh pasien. Status belum diperiksa ditampilkan terpisah.</p></div><span class="count-pill" id="doctor-count">0 dokter</span></div>
+            <div class="section-heading"><div><p class="eyebrow">KINERJA DOKTER</p><h1 id="doctors-heading">Penyelesaian per DPJP</h1><p>Diurutkan berdasarkan persentase resume yang belum selesai, lalu jumlah berkas yang perlu dilengkapi.</p></div><span class="count-pill" id="doctor-count">0 dokter</span></div>
             <div class="table-wrap"><table class="doctor-table"><thead><tr><th>Dokter DPJP</th><th>Resume medis</th><th>Berkas lengkap</th><th>Perlu dilengkapi</th></tr></thead><tbody id="doctors"></tbody></table></div>
             <p class="empty" id="doctors-empty" hidden>Belum ada data dokter untuk periode ini.</p>
           </section>
@@ -67,7 +67,7 @@
   <dialog id="settings-dialog" aria-labelledby="settings-title"><form id="settings-form"><div class="dialog-head"><div><p class="eyebrow">KONFIGURASI</p><h2 id="settings-title">Pengaturan Supabase</h2></div><button class="icon-button close-dialog" type="button" aria-label="Tutup">×</button></div><p class="settings-intro">Gunakan konfigurasi yang sama dengan pengguna lain untuk melihat data bersama.</p><div class="settings-fields"><label>Supabase URL<input id="settings-url" type="url" placeholder="https://project.supabase.co" autocomplete="url"></label><label>Anon Key<input id="settings-key" type="password" autocomplete="off"></label><label>Email akun pengelola Supabase<input id="settings-admin-email" type="email" autocomplete="off"></label><label>Identitas pengguna<input id="settings-user" type="text" autocomplete="name"></label><label>Password catatan lama <span>(opsional)</span><input id="settings-password" type="password" autocomplete="off"></label></div><p class="settings-warning">Anon Key tidak mengenali pengguna secara pribadi. Siapa pun yang memiliki key dan akses ke proyek dapat membaca data sesuai kebijakan Supabase.</p><p id="settings-error" class="error" role="alert"></p><div class="dialog-footer"><button class="button secondary close-dialog" type="button">Batal</button><button class="button primary" type="submit">Simpan pengaturan</button></div></form></dialog>
 
   <dialog id="publish-dialog"><form id="publish-form"><h2>Terbitkan dashboard</h2><p>Masukkan password bersama yang akan dipakai dokter. Gunakan password yang sama setiap kali memperbarui bulan yang sama.</p><div class="settings-fields"><label>Password dashboard publik (minimal 16 karakter)<input id="publish-password" type="password" minlength="16" required autocomplete="new-password"></label></div><p id="publish-error" class="error" role="alert"></p><div class="dialog-footer"><button type="button" class="button secondary close-dialog">Batal</button><button type="submit" class="button primary">Enkripsi dan kirim</button></div></form></dialog>
-  <script src="dashboard-config.js"></script><script src="dashboard-auth.js"></script><script src="dashboard-snapshot.js"></script><script src="dashboard-core.js?v=20261118-complete1"></script><script src="dashboard.js?v=20261118-complete1"></script>
+  <script src="dashboard-config.js"></script><script src="dashboard-auth.js"></script><script src="dashboard-snapshot.js"></script><script src="dashboard-core.js?v=20261118-rank2"></script><script src="dashboard.js?v=20261118-rank2"></script>
 </body>
 </html>
 

@@ -163,8 +163,10 @@
         groups.forEach(group => {
             const row = document.createElement('tr');
             const position = group.unassigned ? 0 : ++rank;
-            if (position === 1) row.className = 'rank-first';
-            else if (position === 2) row.className = 'rank-second';
+            if (group.done < group.total || group.incomplete) {
+                if (position === 1) row.className = 'rank-first';
+                else if (position === 2) row.className = 'rank-second';
+            }
             const doctorCell = cell(row, '');
             const doctorLabel = document.createElement('div');
             doctorLabel.className = 'doctor-label';
@@ -203,8 +205,10 @@
             outstanding.textContent = `Belum: ${group.notDone} / ${group.total} (${percent(group.notDone, group.total)}%)` +
                 (group.unchecked ? ` · ${group.unchecked} belum diperiksa` : '');
             progressCell.replaceChildren(heading, progress, outstanding);
-            cell(row, `${group.complete} / ${group.done}`);
+            const completeCell = cell(row, `${group.complete} / ${group.done}`);
+            completeCell.dataset.label = 'Berkas lengkap';
             const incompleteCell = cell(row, '');
+            incompleteCell.dataset.label = 'Perlu dilengkapi';
             const details = chosen.filter(record => (core.doctorKey(record.dpjp) || core.doctorKey('DPJP belum tersedia')) === core.doctorKey(group.doctor) && record.status === 'sudah' && !core.isComplete(record));
             if (details.length) incompleteCell.replaceChildren(detailButton(`${group.incomplete} / ${group.done}`, details, `Berkas perlu dilengkapi · ${group.doctor}`));
             else incompleteCell.textContent = `0 / ${group.done}`;
@@ -434,7 +438,7 @@
         $('settings-key').value = settings.eklaim_supabase_key || '';
         $('settings-user').value = settings.eklaim_user_identity || '';
         $('settings-password').value = settings.eklaim_encryption_password || '';
-        $('settings-admin-email').value = settings.eklaim_dashboard_admin_email || ''; 
+        $('settings-admin-email').value = settings.eklaim_dashboard_admin_email || '';
         $('settings-error').textContent = '';
         $('settings-dialog').showModal();
     });

@@ -79,7 +79,7 @@
             else group.unchecked++;
             groups.set(key, group);
         });
-        return [...groups.values()].sort((a, b) => Number(a.unassigned) - Number(b.unassigned) || (b.notDone * a.total - a.notDone * b.total) || a.doctor.localeCompare(b.doctor, 'id'));
+        return [...groups.values()].sort((a, b) => Number(a.unassigned) - Number(b.unassigned) || (a.done * b.total - b.done * a.total) || (b.incomplete - a.incomplete) || a.doctor.localeCompare(b.doctor, 'id'));
     }
 
     function patientRows(records, options = {}) {

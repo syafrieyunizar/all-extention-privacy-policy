@@ -10,3 +10,22 @@
 @media(max-width:600px){.metrics{grid-template-columns:1fr}.filter-result{line-height:1.4}.header-title span{line-height:1.2}}
 .doctor-label{display:flex;align-items:center;gap:10px}.rank-badge{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:8px;background:#e5f5ee;color:#15704f;font-size:12px;font-weight:800}.rank-first .rank-badge{background:#ffeded;color:#a5222d}.rank-second .rank-badge{background:#fff4cf;color:#795200}.rank-first .progress span{background:#cf3d4b}.rank-second .progress span{background:#d49b17}.resume-outstanding{margin-top:7px;color:#637a89;font-size:12px;line-height:1.4}
 .rank-first .resume-outstanding{color:#a5222d;font-weight:700}.rank-second .resume-outstanding{color:#795200;font-weight:700}
+.sidebar-toggle{background:#087f83;color:#fff;border-color:#087f83}.sidebar-toggle:hover{background:#066c70}
+@media(max-width:600px){
+  .topbar{height:auto;min-height:68px;gap:8px;flex-wrap:wrap;padding:10px 12px}
+  .header-title{flex:1;min-width:0}.sidebar-toggle{width:44px;height:44px;flex:none}.top-actions{gap:5px}.top-actions .button{padding:0 8px}
+  .app-layout{display:block;min-height:0}
+  .sidebar,.sidebar.collapsed{width:100%;padding:8px 12px;border-right:0;border-bottom:1px solid #e1e9ef;overflow:visible}
+  .sidebar.collapsed{display:none}
+  .sidebar .nav-label{display:inline}.sidebar .nav-item{justify-content:flex-start;padding:10px 12px}
+  .doctor-table,.doctor-table tbody{display:block;width:100%}.doctor-table thead{display:none}
+  .doctor-table tbody{padding:4px 12px 12px}
+  .doctor-table tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 12px;padding:16px;border:1px solid #e1e9ef;border-radius:12px;background:#fff;box-shadow:0 2px 8px #1d3b4a0d}
+  .doctor-table td{display:block;min-width:0;padding:0;border:0;overflow-wrap:anywhere}
+  .doctor-table td:first-child,.doctor-table .progress-cell{grid-column:1/-1}
+  .doctor-table td:first-child{font-weight:700;color:#17364a;font-size:15px}
+  .doctor-table .progress-cell{background:#f4f8f9;border-radius:8px;padding:12px}
+  .doctor-table td[data-label]::before{content:attr(data-label);display:block;margin-bottom:4px;font-size:12px;font-weight:700;color:#617789}
+  .doctor-table .link-button{min-height:36px}
+}
+
