@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard Resume Medis</title>
-  <link rel="stylesheet" href="dashboard.css?v=20261119-resume">
+  <link rel="stylesheet" href="dashboard.css?v=20261119-overview">
 </head>
 <body>
   <section id="login-screen" class="login-screen" aria-labelledby="login-title">
@@ -19,12 +19,13 @@
   <div class="shell" id="dashboard-shell" hidden>
     <header class="topbar">
       <div class="header-title"><button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="Perluas navigasi" aria-expanded="false" aria-controls="sidebar">☰</button><span>Perkembangan Resume Medis</span></div>
-      <div class="top-actions"><button id="logout" class="button secondary" type="button">Keluar</button><button class="button secondary" id="open-settings" type="button">Pengaturan</button></div>
+      <div class="top-actions"><button id="dashboard-sep-toggle" class="button secondary" type="button" aria-pressed="false" title="Tandai nomor SEP yang tercatat di dashboard perangkat pada e-RM" hidden>💡 Tanda SEP: Mati</button><button id="logout" class="button secondary" type="button">Keluar</button><button class="button secondary" id="open-settings" type="button">Pengaturan</button></div>
     </header>
     <div class="app-layout">
       <aside id="sidebar" class="sidebar collapsed" aria-label="Navigasi dashboard">
         <nav class="sidebar-nav" aria-label="Halaman dashboard">
-          <button id="nav-doctors" class="nav-item active" type="button" aria-current="page" title="Kinerja per DPJP"><span class="nav-icon" aria-hidden="true">🩺</span><span class="nav-label">Kinerja per DPJP</span></button>
+          <button id="nav-overview" class="nav-item active" type="button" aria-current="page" title="Dashboard utama"><span class="nav-icon" aria-hidden="true">👨‍⚕️</span><span class="nav-label">Dashboard utama</span></button>
+          <button id="nav-doctors" class="nav-item" type="button" title="Kinerja per DPJP"><span class="nav-icon" aria-hidden="true">🩺</span><span class="nav-label">Kinerja per DPJP</span></button>
           <button id="nav-patients" class="nav-item" type="button" title="Rincian Pasien"><span class="nav-icon" aria-hidden="true">🚑</span><span class="nav-label">Rincian Pasien</span></button>
         </nav>
       </aside>
@@ -36,10 +37,16 @@
         </div>
         <div class="notice"><span class="notice-dot" aria-hidden="true"></span><span id="source-caption">Data tersimpan di perangkat ini.</span></div>
         <p id="published-link" class="message" hidden>Tautan bulan ini: <a id="published-url" target="_blank" rel="noopener noreferrer"></a></p><p id="message" class="message" role="status" aria-live="polite"></p>
-        <section id="doctors-view" aria-labelledby="doctors-heading">
+        <section id="overview-view" class="panel overview-panel" aria-labelledby="overview-heading">
+          <div class="overview-heading"><h1 id="overview-heading">Dashboard utama</h1><span id="overview-count" class="count-pill">0 dokter</span></div>
+          <p class="overview-note">Belum selesai mencakup resume belum ada dan yang belum diperiksa.</p>
+          <table class="overview-table"><thead><tr><th>No.</th><th>Dokter DPJP</th><th>Resume selesai</th><th>Belum selesai</th></tr></thead><tbody id="overview-doctors"></tbody></table>
+          <p class="empty" id="overview-empty" hidden>Belum ada data dokter untuk periode ini.</p>
+        </section>
+        <section id="doctors-view" aria-labelledby="doctors-heading" hidden>
           <section class="panel doctors-panel">
             <div class="section-heading"><div><p class="eyebrow">KINERJA DOKTER</p><h1 id="doctors-heading">Penyelesaian per DPJP</h1><p>Diurutkan berdasarkan persentase resume yang belum selesai, lalu jumlah berkas yang perlu dilengkapi.</p></div><span class="count-pill" id="doctor-count">0 dokter</span></div>
-            <div class="table-wrap"><table class="doctor-table"><thead><tr><th>Dokter DPJP</th><th>Resume medis</th><th>Berkas lengkap</th><th>Perlu dilengkapi</th></tr></thead><tbody id="doctors"></tbody></table></div>
+            <div class="table-wrap"><table class="doctor-table"><thead><tr><th>Dokter DPJP</th><th>Resume medis</th><th>Status kelengkapan berkas</th></tr></thead><tbody id="doctors"></tbody></table></div>
             <p class="empty" id="doctors-empty" hidden>Belum ada data dokter untuk periode ini.</p>
           </section>
           <section class="metrics" aria-label="Ringkasan bulan">
@@ -50,14 +57,28 @@
           </section>
         </section>
         <section id="patients-view" class="panel patients-panel" aria-labelledby="patients-heading" hidden>
-          <div class="section-heading"><div><p class="eyebrow">RINCIAN PASIEN</p><h1 id="patients-heading">Daftar pasien</h1><p>Pilih judul kolom untuk mengurutkan data.</p></div><div class="patient-controls"><label class="search-label"><span class="sr-only">Cari pasien atau DPJP</span><input id="search" type="search" placeholder="Cari nama, SEP, RM, atau DPJP"></label><button id="undated" class="button secondary" type="button">Tanggal belum tersedia <span id="undated-count">0</span></button></div></div>
+          <div class="section-heading"><div><p class="eyebrow">RINCIAN PASIEN</p><h1 id="patients-heading">Daftar pasien</h1><p>Pilih judul kolom untuk mengurutkan data.</p></div><div class="patient-controls"><label class="search-label"><span class="sr-only">Cari pasien atau DPJP</span><input id="search" type="search" placeholder="Cari nama, SEP, RM, atau DPJP"></label><button id="undated" hidden class="button secondary" type="button">Tanggal belum tersedia <span id="undated-count">0</span></button></div></div>
           <div class="filter-bar" aria-label="Filter pasien">
             <details class="filter-menu" id="doctor-filter"><summary>Dokter DPJP <span id="doctor-filter-count">Semua</span></summary><div class="filter-popover"><div class="filter-list" id="doctor-filter-list"></div><button class="filter-clear" type="button" data-clear-filter="doctor">Tampilkan semua</button></div></details>
             <details class="filter-menu" id="room-filter"><summary>Ruangan <span id="room-filter-count">Semua</span></summary><div class="filter-popover"><div class="filter-list" id="room-filter-list"></div><button class="filter-clear" type="button" data-clear-filter="room">Tampilkan semua</button></div></details>
+            <form id="date-filter" class="date-range" aria-label="Filter rentang tanggal">
+              <label>Jenis tanggal<select id="date-field"><option value="tglMasuk">Tanggal masuk</option><option value="tglPulang" selected>Tanggal pulang</option></select></label>
+              <label>Dari<input id="date-from" type="date"></label><label>Sampai<input id="date-to" type="date"></label>
+              <button type="submit" class="button primary" aria-label="Terapkan filter tanggal" title="Terapkan filter tanggal">🔍</button>
+              <button id="date-clear" type="button" class="button secondary">Hapus tanggal</button>
+            </form>
+            <div class="mobile-sort"><label>Urutkan<select id="mobile-sort"><option value="tglPulang">Tanggal pulang</option><option value="tglMasuk">Tanggal masuk</option><option value="ruangan">Ruangan</option><option value="dpjp">DPJP</option><option value="status">Resume medis</option><option value="completeness">Kelengkapan berkas</option></select></label><button id="mobile-direction" class="button secondary" type="button">Naik ↑</button></div>
+            <span id="date-error" class="error" role="status"></span>
             <span id="patient-result-count" class="filter-result" aria-live="polite"></span>
           </div>
-          <div class="table-wrap"><table class="patient-table"><thead><tr><th data-sort-header="tglMasuk"><button class="sort-button" type="button" data-sort="tglMasuk">Masuk <span aria-hidden="true"></span></button></th><th data-sort-header="tglPulang"><button class="sort-button" type="button" data-sort="tglPulang">Pulang <span aria-hidden="true"></span></button></th><th>Nomor SEP</th><th>Nama</th><th>Nomor RM</th><th data-sort-header="ruangan"><button class="sort-button" type="button" data-sort="ruangan">Ruangan <span aria-hidden="true"></span></button></th><th data-sort-header="dpjp"><button class="sort-button" type="button" data-sort="dpjp">DPJP <span aria-hidden="true"></span></button></th><th data-sort-header="status"><button class="sort-button" type="button" data-sort="status">Resume medis <span aria-hidden="true"></span></button></th><th data-sort-header="completeness"><button class="sort-button" type="button" data-sort="completeness">Kelengkapan berkas <span aria-hidden="true"></span></button></th></tr></thead><tbody id="patients"></tbody></table></div>
+          <div class="table-wrap"><table class="patient-table"><thead><tr><th>No.</th><th data-sort-header="tglMasuk"><button class="sort-button" type="button" data-sort="tglMasuk">Masuk <span aria-hidden="true"></span></button></th><th data-sort-header="tglPulang"><button class="sort-button" type="button" data-sort="tglPulang">Pulang <span aria-hidden="true"></span></button></th><th>Nomor SEP</th><th>Nama</th><th>Nomor RM</th><th data-sort-header="ruangan"><button class="sort-button" type="button" data-sort="ruangan">Ruangan <span aria-hidden="true"></span></button></th><th data-sort-header="dpjp"><button class="sort-button" type="button" data-sort="dpjp">DPJP <span aria-hidden="true"></span></button></th><th data-sort-header="status"><button class="sort-button" type="button" data-sort="status">Resume medis <span aria-hidden="true"></span></button></th><th data-sort-header="completeness"><button class="sort-button" type="button" data-sort="completeness">Kelengkapan berkas <span aria-hidden="true"></span></button></th></tr></thead><tbody id="patients"></tbody></table></div>
           <p class="empty" id="patients-empty" hidden>Belum ada pasien pada tampilan ini.</p>
+          <nav class="patient-pagination controls" aria-label="Halaman daftar pasien">
+            <label>Pasien per halaman<select id="patient-page-size"><option>5</option><option selected>10</option><option>25</option><option>50</option><option>100</option></select></label>
+            <button id="patient-prev" type="button" class="button secondary">Sebelumnya</button>
+            <span id="patient-page-status" role="status"></span>
+            <button id="patient-next" type="button" class="button secondary">Berikutnya</button>
+          </nav>
         </section>
       </main>
     </div>
@@ -67,7 +88,6 @@
   <dialog id="settings-dialog" aria-labelledby="settings-title"><form id="settings-form"><div class="dialog-head"><div><p class="eyebrow">KONFIGURASI</p><h2 id="settings-title">Pengaturan Supabase</h2></div><button class="icon-button close-dialog" type="button" aria-label="Tutup">×</button></div><p class="settings-intro">Gunakan konfigurasi yang sama dengan pengguna lain untuk melihat data bersama.</p><div class="settings-fields"><label>Supabase URL<input id="settings-url" type="url" placeholder="https://project.supabase.co" autocomplete="url"></label><label>Anon Key<input id="settings-key" type="password" autocomplete="off"></label><label>Email akun pengelola Supabase<input id="settings-admin-email" type="email" autocomplete="off"></label><label>Identitas pengguna<input id="settings-user" type="text" autocomplete="name"></label><label>Password catatan lama <span>(opsional)</span><input id="settings-password" type="password" autocomplete="off"></label></div><p class="settings-warning">Anon Key tidak mengenali pengguna secara pribadi. Siapa pun yang memiliki key dan akses ke proyek dapat membaca data sesuai kebijakan Supabase.</p><p id="settings-error" class="error" role="alert"></p><div class="dialog-footer"><button class="button secondary close-dialog" type="button">Batal</button><button class="button primary" type="submit">Simpan pengaturan</button></div></form></dialog>
 
   <dialog id="publish-dialog"><form id="publish-form"><h2>Terbitkan dashboard</h2><p>Masukkan password dashboard saat ini. Untuk dashboard baru, masukkan password yang akan digunakan. Untuk mengganti password, isi juga password baru dan konfirmasinya.</p><div class="settings-fields"><label>Password saat ini atau untuk dashboard baru<input id="publish-password" type="password" required autocomplete="off"></label><label>Password baru (opsional, minimal 8 karakter)<input id="publish-new-password" type="password" autocomplete="new-password"></label><label>Konfirmasi password baru<input id="publish-confirm-password" type="password" autocomplete="new-password"></label></div><p id="publish-error" class="error" role="alert"></p><div class="dialog-footer"><button type="button" class="button secondary close-dialog">Batal</button><button type="submit" class="button primary">Enkripsi dan kirim</button></div></form></dialog>
-  <script src="dashboard-config.js"></script><script src="dashboard-auth.js"></script><script src="dashboard-snapshot.js?v=20261118-session1"></script><script src="dashboard-core.js?v=20261118-rank2"></script><script src="dashboard.js?v=20261119-resume"></script>
+  <script src="dashboard-config.js"></script><script src="dashboard-auth.js"></script><script src="dashboard-snapshot.js?v=20261118-session1"></script><script src="dashboard-core.js?v=20261119-range"></script><script src="dashboard.js?v=20261119-overview"></script>
 </body>
 </html>
-

@@ -86,10 +86,14 @@
         const query = String(options.query || '').trim().toLocaleLowerCase('id');
         const doctors = options.doctors || new Set();
         const rooms = options.rooms || new Set();
+        const dateField = options.dateField === 'tglMasuk' ? 'tglMasuk' : 'tglPulang';
+        const dateFrom = date(options.dateFrom), dateTo = date(options.dateTo);
         const filtered = records.filter(record => {
             const doctor = doctorKey(String(record.dpjp || '').trim() || 'DPJP belum tersedia');
             const room = doctorKey(String(record.ruangan || '').trim() || 'Ruangan belum tersedia');
-            return (!doctors.size || doctors.has(doctor)) && (!rooms.size || rooms.has(room)) &&
+            const patientDate = date(record[dateField]);
+            return (!(dateFrom || dateTo) || (patientDate && (!dateFrom || patientDate >= dateFrom) && (!dateTo || patientDate <= dateTo))) &&
+                (!doctors.size || doctors.has(doctor)) && (!rooms.size || rooms.has(room)) &&
                 (!query || [record.nama, record.sep, record.rm, record.dpjp, record.ruangan].some(value => String(value || '').toLocaleLowerCase('id').includes(query)));
         });
         const key = options.sortKey || 'tglPulang';
@@ -108,4 +112,3 @@
 
     root.EklaimDashboard = { date, noteText, doctorKey, resolve, summarize, patientRows, isComplete };
 })(globalThis);
-
