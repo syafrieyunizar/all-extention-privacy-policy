@@ -45,6 +45,19 @@
 
     function percent(part, total) { return total ? Math.round(part * 100 / total) : 0; }
 
+    function filterDoctors() {
+        const query = core.doctorKey($('doctor-search').value);
+        const rows = Array.from($('doctors').children);
+        let visible = 0;
+        rows.forEach(row => {
+            row.hidden = !!query && !row.dataset.doctorSearch.includes(query);
+            if (!row.hidden) visible++;
+        });
+        $('doctor-count').textContent = query ? `${visible} dari ${rows.length} dokter` : `${rows.length} dokter`;
+        $('doctors-empty').hidden = visible > 0;
+        $('doctors-empty').textContent = rows.length && query ? 'Tidak ada dokter yang cocok dengan pencarian.' : 'Belum ada data dokter untuk periode ini.';
+    }
+
     function chosenRecords() {
         if (!undated && !/^\d{4}-(?:0[1-9]|1[0-2])$/.test(month.value)) return [];
         return records.filter(record => undated ? !record.tglPulang : record.tglPulang?.startsWith(month.value));
@@ -179,6 +192,7 @@
         let rank = 0;
         groups.forEach(group => {
             const row = document.createElement('tr');
+            row.dataset.doctorSearch = core.doctorKey(group.doctor);
             const position = group.unassigned ? 0 : ++rank;
             if (group.done < group.total) row.className = 'resume-incomplete';
             const doctorCell = cell(row, '');
@@ -240,7 +254,7 @@
             completeCell.replaceChildren(completeLine, pendingLine);
             doctorBody.appendChild(row);
         });
-        $('doctors-empty').hidden = groups.length > 0;
+        filterDoctors();
 
         updateFilterOptions(chosen);
         const query = $('search').value.trim();
@@ -445,6 +459,7 @@
     month.addEventListener('change', () => { undated = false; $('published-link').hidden = true; publishedAt = null; renderFirstPage(); });
     source.addEventListener('change', () => { undated = false; patientPage = 1; load(); });
     $('search').addEventListener('input', renderFirstPage);
+    $('doctor-search').addEventListener('input', filterDoctors);
     $('date-filter').addEventListener('submit', event => {
         event.preventDefault();
         const dateFrom = $('date-from').value;
