@@ -82,11 +82,17 @@
         return [...groups.values()].sort((a, b) => Number(a.unassigned) - Number(b.unassigned) || (a.done * b.total - b.done * a.total) || (b.incomplete - a.incomplete) || a.doctor.localeCompare(b.doctor, 'id'));
     }
 
-    function unfinishedForMonth(records, month) {
+    function unfinishedForMonth(records, month, statuses = ['belum']) {
         if (!/^\d{4}-(?:0[1-9]|1[0-2])$/.test(month || '')) throw new Error('Pilih bulan pulang yang valid.');
-        return records.filter(record => record.status === 'belum' && date(record.tglPulang).startsWith(month))
-            .map(record => Object.fromEntries(['sep', 'rm', 'nama', 'tglMasuk', 'tglPulang', 'ruangan', 'dpjp'].map(key => [key, record[key] || ''])))
+        return records.filter(record => statuses.includes(record.status ?? 'pending') && date(record.tglPulang).startsWith(month))
+            .map(record => ({ ...Object.fromEntries(['sep', 'rm', 'nama', 'tglMasuk', 'tglPulang', 'ruangan', 'dpjp'].map(key => [key, record[key] || ''])), status: record.status ?? 'pending' }))
             .sort((a, b) => a.tglPulang.localeCompare(b.tglPulang) || String(a.nama).localeCompare(String(b.nama), 'id'));
+    }
+
+    function matchesPreparedResume(patient, items) {
+        const record = items[`eklaim_dashboard_${patient.sep}`];
+        return record?.sep === patient.sep && (record.status ?? 'pending') === (patient.status ?? 'belum') &&
+            resolve(record, items).tglPulang === date(patient.tglPulang);
     }
 
     function patientRows(records, options = {}) {
@@ -99,7 +105,8 @@
             const doctor = doctorKey(String(record.dpjp || '').trim() || 'DPJP belum tersedia');
             const room = doctorKey(String(record.ruangan || '').trim() || 'Ruangan belum tersedia');
             const patientDate = date(record[dateField]);
-            return (!(dateFrom || dateTo) || (patientDate && (!dateFrom || patientDate >= dateFrom) && (!dateTo || patientDate <= dateTo))) &&
+            return (!options.onlyUnfinished || record.status !== 'sudah') &&
+                (!(dateFrom || dateTo) || (patientDate && (!dateFrom || patientDate >= dateFrom) && (!dateTo || patientDate <= dateTo))) &&
                 (!doctors.size || doctors.has(doctor)) && (!rooms.size || rooms.has(room)) &&
                 (!query || [record.nama, record.sep, record.rm, record.dpjp, record.ruangan].some(value => String(value || '').toLocaleLowerCase('id').includes(query)));
         });
@@ -126,5 +133,12 @@
         } catch (_) { return false; }
     }
 
-    root.EklaimDashboard = { date, noteText, doctorKey, resolve, summarize, patientRows, isComplete, unfinishedForMonth, isErmPdfUrl };
+    function missingDpjpPatients(items) {
+        return Object.entries(items)
+            .filter(([key, record]) => /^eklaim_dashboard_\d{4}R\d{7}V\d{6}$/.test(key) && key === `eklaim_dashboard_${record?.sep}`)
+            .map(([, record]) => resolve(record, items))
+            .filter(record => !String(record.dpjp || '').trim());
+    }
+
+    root.EklaimDashboard = { date, noteText, doctorKey, resolve, summarize, patientRows, isComplete, unfinishedForMonth, matchesPreparedResume, isErmPdfUrl, missingDpjpPatients };
 })(globalThis);

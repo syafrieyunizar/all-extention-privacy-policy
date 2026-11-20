@@ -17,6 +17,7 @@
     let sortDirection = 'asc';
     let patientPage = 1;
     let appliedDates = {};
+    let onlyUnfinished = false;
     const selectedDoctors = new Set();
     const selectedRooms = new Set();
     let filterSignature = '';
@@ -173,7 +174,15 @@
                 cell(row, group.doctor);
                 cell(row, `${group.done}/${group.total}`);
                 const remaining = cell(row, String(group.total - group.done));
-                if (group.total > group.done) remaining.className = 'overview-pending';
+                if (group.total > group.done && $('only-unfinished')) {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'link-button';
+                    button.textContent = String(group.total - group.done);
+                    button.setAttribute('aria-label', `${button.textContent} resume belum selesai untuk ${group.doctor}`);
+                    button.addEventListener('click', () => openUnfinishedPatients(group));
+                    remaining.replaceChildren(button);
+                }
                 overviewBody.appendChild(row);
             });
             $('overview-empty').hidden = groups.length > 0;
@@ -185,7 +194,7 @@
         $('undated').firstChild.textContent = undated ? 'Kembali ke bulan ' : 'Tanggal belum tersedia ';
         $('publish').textContent = 'Kirim ke Supabase';
         $('publish').hidden = source.value !== 'local';
-        if ($('prepare-unfinished')) $('prepare-unfinished').hidden = !isExtension || source.value !== 'local' || undated;
+        if ($('prepare-unfinished')) $('prepare-unfinished').hidden = !isExtension || source.value !== 'local' || session?.role !== 'admin';
         $('source-caption').textContent = publishedAt
             ? `Terakhir diperbarui: ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(publishedAt))}. Tidak diperbarui secara realtime.`
             : source.value === 'local' ? 'Data tersimpan di perangkat. Kirim secara manual untuk memperbarui dashboard bersama.' : 'Waktu pembaruan belum tersedia. Tidak diperbarui secara realtime.';
@@ -262,7 +271,7 @@
         updateFilterOptions(chosen);
         const query = $('search').value.trim();
         const { dateFrom, dateTo } = appliedDates;
-        const filtered = core.patientRows(chosen, { query, doctors: selectedDoctors, rooms: selectedRooms, sortKey, sortDirection, ...appliedDates });
+        const filtered = core.patientRows(chosen, { query, doctors: selectedDoctors, rooms: selectedRooms, sortKey, sortDirection, onlyUnfinished, ...appliedDates });
         const pageSize = Number($('patient-page-size')?.value) || filtered.length || 1;
         const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
         patientPage = Math.min(totalPages, Math.max(1, patientPage));
@@ -288,7 +297,22 @@
             cell(row, String(offset + index + 1));
             renderDate(row, record, 'tglMasuk');
             renderDate(row, record, 'tglPulang');
-            cell(row, record.sep); cell(row, record.nama); cell(row, record.rm); cell(row, record.ruangan); cell(row, record.dpjp);
+            cell(row, record.sep);
+            const nameCell = cell(row, record.nama);
+            cell(row, record.rm); cell(row, record.ruangan); cell(row, record.dpjp);
+            row.className = 'patient-row';
+            const details = document.createElement('button');
+            details.type = 'button';
+            details.className = 'patient-details-toggle';
+            details.textContent = 'Rincian';
+            details.setAttribute('aria-expanded', 'false');
+            details.setAttribute('aria-label', `Rincian ${record.nama || record.sep}`);
+            details.addEventListener('click', () => {
+                const open = row.classList.toggle('patient-expanded');
+                details.setAttribute('aria-expanded', String(open));
+                details.textContent = open ? 'Tutup' : 'Rincian';
+            });
+            nameCell.appendChild(details);
             const statusCell = cell(row, '');
             statusCell.replaceChildren(resumeStatus(record));
             const noteCell = cell(row, '');
@@ -300,11 +324,24 @@
         $('patients-empty').hidden = filtered.length > 0;
         const otherMonths = source.value === 'local' && !undated
             ? records.filter(record => record.tglPulang && !record.tglPulang.startsWith(month.value)).length : 0;
-        $('patients-empty').textContent = query || selectedDoctors.size || selectedRooms.size || dateFrom || dateTo
+        $('patients-empty').textContent = query || selectedDoctors.size || selectedRooms.size || onlyUnfinished || dateFrom || dateTo
             ? 'Tidak ada pasien yang cocok dengan pencarian atau filter.'
             : otherMonths && !chosen.length
                 ? `Tidak ada pasien di bulan ini. Ada ${otherMonths} pasien pada bulan lain; pilih bulan tanggal pulangnya.`
                 : 'Belum ada pasien pada tampilan ini. Buka resume di e-RM untuk menambah data.';
+    }
+
+    function filterDoctorChoices() {
+        const search = $('doctor-filter-search');
+        if (!search) return;
+        const query = core.doctorKey(search.value);
+        const options = $('doctor-filter-list').querySelectorAll('label');
+        let visible = 0;
+        for (const option of options) {
+            option.hidden = !option.querySelector('input').value.includes(query);
+            if (!option.hidden) visible++;
+        }
+        $('doctor-filter-no-match').hidden = !query || visible > 0 || !options.length;
     }
 
     function updateFilterOptions(chosen) {
@@ -344,6 +381,7 @@
             }
             rebuild('doctor-filter-list', doctors, selectedDoctors);
             rebuild('room-filter-list', rooms, selectedRooms);
+            filterDoctorChoices();
         }
         $('doctor-filter-count').textContent = selectedDoctors.size ? `${selectedDoctors.size} dipilih` : 'Semua';
         $('room-filter-count').textContent = selectedRooms.size ? `${selectedRooms.size} dipilih` : 'Semua';
@@ -386,36 +424,49 @@
     }
 
     $('prepare-unfinished')?.addEventListener('click', () => {
-        if (!isExtension || source.value !== 'local' || session?.role !== 'admin' || undated) { notify('Hanya pengelola yang dapat menyiapkan data perangkat per bulan.', true); return; }
-        try {
-            const selected = core.unfinishedForMonth(records, month.value);
-            if (!selected.length) { notify('Tidak ada pasien berstatus Resume belum pada bulan ini.'); return; }
-            $('prepare-summary').textContent = `${selected.length} pasien berstatus Resume belum pada bulan ${month.value}. Data perangkat akan diperiksa kembali sebelum disiapkan.`;
-            $('prepare-email').value = $('login-email').value;
-            $('prepare-password').value = '';
-            $('prepare-error').textContent = '';
-            $('prepare-dialog').showModal();
-        } catch (error) { notify(error.message, true); }
+        if (!isExtension || source.value !== 'local' || session?.role !== 'admin') return;
+        $('prepare-form').reset();
+        $('prepare-summary').textContent = `Resume diperiksa untuk bulan pulang ${month.value || 'yang dipilih'}. DPJP kosong mencakup seluruh dashboard lokal.`;
+        $('prepare-email').value = $('login-email').value;
+        $('prepare-error').textContent = '';
+        $('prepare-dialog').showModal();
     });
     $('prepare-form')?.addEventListener('submit', async event => {
         event.preventDefault();
-        const button = event.currentTarget.querySelector('button[type="submit"]');
-        button.disabled = true; $('prepare-error').textContent = '';
+        const form = event.currentTarget;
+        const button = form.querySelector('button[type="submit"]');
+        button.disabled = true;
+        $('prepare-error').textContent = '';
         const selectedMonth = month.value;
         try {
-            if (!isExtension || source.value !== 'local' || session?.role !== 'admin' || undated) throw new Error('Sesi pengelola atau data perangkat tidak tersedia.');
+            if (!isExtension || source.value !== 'local' || session?.role !== 'admin') throw new Error('Sesi pengelola atau data perangkat tidak tersedia.');
+            const choices = new Set(new FormData(form).getAll('evaluation'));
+            const statuses = ['belum', 'pending'].filter(status => choices.has(status));
+            if (!statuses.length && !choices.has('dpjp')) throw new Error('Centang minimal satu pilihan.');
+            if (statuses.length && undated) throw new Error('Kembali ke tampilan bulan pulang untuk menyiapkan daftar resume.');
             const verified = await EklaimDashboardAuth.login(config, $('prepare-email').value.trim(), $('prepare-password').value);
             if (verified.role !== 'admin') throw new Error('Akun ini bukan pengelola dashboard.');
             const items = await chrome.storage.local.get(null);
-            if (Array.isArray(items.eklaim_pending_dashboard_unfinished) && items.eklaim_pending_dashboard_unfinished.length) throw new Error('Masih ada daftar dashboard yang belum diproses di e-RM. Selesaikan daftar tersebut dahulu.');
-            const current = Object.entries(items)
-                .filter(([key, value]) => /^eklaim_dashboard_\d{4}R\d{7}V\d{6}$/.test(key) && value?.sep && key === `eklaim_dashboard_${value.sep}`)
-                .map(([, record]) => core.resolve(record, items));
-            const patients = core.unfinishedForMonth(current, selectedMonth);
-            if (!patients.length) throw new Error('Tidak ada lagi pasien berstatus Resume belum pada bulan ini.');
-            await chrome.storage.local.set({ eklaim_pending_dashboard_unfinished: patients });
+            const updates = {}, summary = [];
+            if (statuses.length) {
+                const current = Object.entries(items)
+                    .filter(([key, value]) => /^eklaim_dashboard_\d{4}R\d{7}V\d{6}$/.test(key) && key === `eklaim_dashboard_${value?.sep}`)
+                    .map(([, record]) => core.resolve(record, items));
+                const patients = core.unfinishedForMonth(current, selectedMonth, statuses);
+                if (patients.length) {
+                    if (items.eklaim_pending_dashboard_unfinished?.length) throw new Error('Masih ada daftar dashboard yang belum diproses di e-RM. Selesaikan daftar tersebut dahulu.');
+                    updates.eklaim_pending_dashboard_unfinished = patients;
+                }
+                summary.push(`${patients.length} pasien evaluasi resume`);
+            }
+            if (choices.has('dpjp')) {
+                const patients = core.missingDpjpPatients(items).map(({ sep }) => ({ sep }));
+                updates.eklaim_pending_dashboard_dpjp = patients;
+                summary.push(`${patients.length} SEP dengan DPJP kosong`);
+            }
+            if (Object.keys(updates).length) await chrome.storage.local.set(updates);
             $('prepare-dialog').close();
-            notify(`${patients.length} pasien disiapkan dari bulan ${selectedMonth}. Buka daftar e-RM dengan periode sesuai, lalu tekan Cek Resume. Daftar antrean lain tetap tersimpan.`);
+            notify(`Disiapkan: ${summary.join(' dan ')}. Buka daftar e-RM pada periode yang sesuai, lalu pilih Cek Resume.`);
         } catch (error) { $('prepare-error').textContent = error.message; }
         finally { $('prepare-password').value = ''; button.disabled = false; }
     });
@@ -460,6 +511,29 @@
         finally { $('publish-password').value = ''; $('publish-new-password').value = ''; $('publish-confirm-password').value = ''; button.disabled = false; }
     });
 
+    function openUnfinishedPatients(group) {
+        selectedDoctors.clear();
+        selectedDoctors.add(core.doctorKey(group.doctor));
+        selectedRooms.clear();
+        filterSignature = '';
+        if ($('doctor-filter-search')) $('doctor-filter-search').value = '';
+        $('search').value = '';
+        appliedDates = {};
+        for (const id of ['date-from', 'date-to']) if ($(id)) $(id).value = '';
+        if ($('date-error')) $('date-error').textContent = '';
+        onlyUnfinished = true;
+        $('only-unfinished').checked = true;
+        const pageSize = $('patient-page-size');
+        const remaining = group.total - group.done;
+        if (pageSize && Number(pageSize.value) < remaining) {
+            const sizes = Array.from(pageSize.options, option => option.value);
+            pageSize.value = sizes.find(size => Number(size) >= remaining) || sizes.at(-1);
+        }
+        showView('patients');
+        renderFirstPage();
+        $('patients-heading').focus();
+    }
+
     function showView(view) {
         if ($('overview-view')) $('overview-view').hidden = view !== 'overview';
         $('doctors-view').hidden = view !== 'doctors';
@@ -489,6 +563,10 @@
         (doctors ? selectedDoctors : selectedRooms).clear();
         const list = $(doctors ? 'doctor-filter-list' : 'room-filter-list');
         list.querySelectorAll('input').forEach(input => { input.checked = false; });
+        if (doctors && $('doctor-filter-search')) {
+            $('doctor-filter-search').value = '';
+            filterDoctorChoices();
+        }
         renderFirstPage();
     }));
 
@@ -500,7 +578,12 @@
     month.addEventListener('change', () => { undated = false; $('published-link').hidden = true; publishedAt = null; renderFirstPage(); });
     source.addEventListener('change', () => { undated = false; patientPage = 1; load(); });
     $('search').addEventListener('input', renderFirstPage);
+    $('only-unfinished')?.addEventListener('change', event => {
+        onlyUnfinished = event.currentTarget.checked;
+        renderFirstPage();
+    });
     $('doctor-search')?.addEventListener('input', filterDoctors);
+    $('doctor-filter-search')?.addEventListener('input', filterDoctorChoices);
     $('date-filter')?.addEventListener('submit', event => {
         event.preventDefault();
         const dateFrom = $('date-from').value;
