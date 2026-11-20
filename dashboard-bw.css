@@ -1,0 +1,310 @@
+
+/* ============================================================================
+   TEMA HITAM-PUTIH — MagicSoap AI
+   Hanya nilai warna/radius/tipografi. Tidak ada aturan fitur yang diubah.
+
+   Kontras terverifikasi (WCAG 2.2 AA):
+     #262626 di #ffffff = 15.13:1  (teks utama)            LOLOS AA
+     #595959 di #ffffff =  7.00:1  (teks sekunder)         LOLOS AA (diperkuat
+                                    dari #737373 yang hanya 4.74:1 — terlalu
+                                    mepet untuk teks 14px)
+     #ffffff di #000000 = 21.00:1  (teks di tombol hitam)  LOLOS AA
+     #737373 di #000000 =  4.43:1  -> DILARANG, tidak dipakai
+     #e5e5e5 di #ffffff =  1.26:1  -> HANYA garis, bukan teks
+   ============================================================================ */
+:root {
+  /* surface */
+  --surface: #ffffff;
+  --canvas: #fafafa;
+
+  /* teks */
+  --ink-900: #000000;
+  --ink-700: #262626;          /* text.inverse */
+  --ink-500: #595959;          /* text.secondary, dinaikkan kontrasnya */
+  --ink-400: #595959;
+
+  /* garis */
+  --line-200: #e5e5e5;
+  --line-100: #f0f0f0;
+
+  /* aksen */
+  --teal-900: #000000;
+  --teal-800: #000000;
+  --teal-700: #000000;
+  --teal-600: #262626;
+  --teal-100: #f5f5f5;
+  --teal-050: #fafafa;
+
+  /* status */
+  --amber-ink: #262626;
+  --amber-bg: #f5f5f5;
+  --amber-line: #d4d4d4;
+  --red-ink: #000000;
+  --red-bg: #f5f5f5;
+  --green-ink: #000000;
+  --green-bg: #f0f0f0;
+
+  /* radius sesuai token merek */
+  --r-sm: 12px;
+  --r-lg: 12px;
+
+  /* elevasi dibuang */
+  --shadow-1: none;
+  --shadow-2: none;
+}
+
+/* ---------- dasar ---------- */
+body {
+  background: var(--canvas);
+  color: var(--ink-700);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+}
+.topbar { background: #fff; border-bottom: 1px solid var(--line-200); }
+.sidebar { background: #fff; border-right: 1px solid var(--line-200); }
+
+/* ikon sidebar: emoji berwarna -> dipaksa monokrom agar sejalan tema */
+.nav-icon { filter: grayscale(1) contrast(1.15); opacity: .85; }
+
+.nav-item { color: var(--ink-700); border-radius: 12px; }
+.nav-item:hover { background: #f5f5f5; }
+.nav-item.active { background: #000; color: #fff; font-weight: 600; }
+.nav-item.active .nav-icon { filter: grayscale(1) brightness(0) invert(1); opacity: 1; }
+.nav-item:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+
+/* ---------- tombol ---------- */
+.button {
+  border-radius: 9999px;
+  font-weight: 500;
+  transition: background-color .15s, color .15s, border-color .15s;
+}
+.button.primary { background: #000; color: #fff; border: 1px solid #000; }
+.button.primary:hover { background: #262626; border-color: #262626; }
+.button.primary:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+.button.primary:active { background: #000; transform: translateY(1px); }
+.button.primary:disabled { background: #e5e5e5; color: #595959; border-color: #e5e5e5; cursor: not-allowed; opacity: 1; }
+
+.button.secondary { background: #fff; color: #262626; border: 1px solid #e5e5e5; }
+.button.secondary:hover { background: #f5f5f5; border-color: #8c8c8c; }
+.button.secondary:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+.button.secondary:active { background: #f0f0f0; transform: translateY(1px); }
+.button.secondary:disabled { background: #fafafa; color: #595959; border-color: #e5e5e5; cursor: not-allowed; }
+
+.sidebar-toggle, .icon-button {
+  background: #fff; border: 1px solid #e5e5e5; color: #262626; border-radius: 12px;
+}
+.sidebar-toggle:hover, .icon-button:hover { background: #f5f5f5; }
+.sidebar-toggle:focus-visible, .icon-button:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+
+/* ---------- panel ---------- */
+.panel, .metric {
+  background: #fff; border: 1px solid var(--line-200); border-radius: 12px; box-shadow: none;
+}
+.metric-label { color: var(--ink-500); }
+.metric strong { color: #000; font-variant-numeric: tabular-nums; }
+.metric-note { color: var(--ink-500); }
+
+th {
+  background: #fafafa; color: #595959; text-transform: uppercase;
+  letter-spacing: .06em; font-size: 14px; font-weight: 600;
+  border-bottom: 1px solid #e5e5e5;
+}
+td { color: #262626; border-top: 1px solid #e5e5e5; }
+tbody tr:hover { background: #fafafa; }
+tbody tr:focus-within { background: #f5f5f5; }
+
+/* angka "Belum selesai" */
+.link-button {
+  color: #000; font-weight: 700; text-decoration: underline;
+  text-decoration-thickness: 1px; text-underline-offset: 3px;
+  background: none; border: 0; border-radius: 4px; padding: 2px 0;
+}
+.link-button:hover { text-decoration-thickness: 2px; }
+.link-button:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+
+.progress { background: #f0f0f0; border-radius: 9999px; }
+.progress span { background: #000; border-radius: 9999px; }
+.progress-heading span { color: #000; font-weight: 700; }
+.progress-heading strong { color: #000; }
+
+/* ---------- nomor urut & penanda "belum selesai" (bawaan berwarna) ---------- */
+.rank-badge {
+  display: grid; place-items: center; flex: none;
+  width: 28px; height: 28px; border-radius: 8px;
+  background: #f0f0f0; color: #262626;
+  font-size: 14px; font-weight: 700;
+  border: 1px solid #e5e5e5;
+}
+.resume-incomplete .rank-badge {
+  background: #fff; color: #000;
+  border: 1px dashed #000; font-weight: 800;
+}
+.resume-incomplete .progress span {
+  background: repeating-linear-gradient(
+    45deg, #000 0 4px, #6b6b6b 4px 8px
+  );
+}
+.resume-incomplete .progress-heading span { color: #000; font-weight: 800; }
+.resume-incomplete .resume-outstanding { color: #000; font-weight: 800; }
+.file-pending { color: #262626; font-size: 14px; line-height: 22px; }
+.file-pending .link-button { font-size: inherit; }
+
+/* "Tertunda …" tetap terbaca jelas tanpa warna */
+.resume-outstanding { color: #262626; }
+
+/* ---------- status (badge) ---------- */
+.status {
+  border-radius: 9999px; font-weight: 600; font-size: 14px;
+  padding: 4px 10px; border: 1px solid; display: inline-block; white-space: nowrap;
+}
+.status.done { background: #000; color: #fff; border-color: #000; }
+.status.missing {
+  background: #fff; color: #000; border-color: #000;
+  border-style: dashed; font-weight: 700;
+}
+.status.pending { background: #f5f5f5; color: #262626; border-color: #d4d4d4; }
+.status.complete { background: #f0f0f0; color: #262626; border-color: #d4d4d4; }
+
+/* ---------- select status (dipakai di HP) ---------- */
+.status-select {
+  background: #fff; color: #262626; border: 1px solid #8c8c8c;
+  border-radius: 9999px; font-weight: 600; font-size: 14px;
+  padding: 6px 12px; min-height: 40px;
+}
+.status-select:hover { border-color: #000; }
+.status-select:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+.status-select:disabled { background: #fafafa; color: #595959; cursor: not-allowed; }
+
+/* ---------- form & filter ---------- */
+input, select, textarea {
+  background: #fff; color: #262626; border: 1px solid #e5e5e5;
+  border-radius: 12px; font-size: 16px;
+}
+input::placeholder { color: #595959; }
+input:hover, select:hover { border-color: #8c8c8c; }
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #000; outline-offset: 1px; border-color: #000;
+}
+input:disabled, select:disabled {
+  background: #fafafa; color: #595959; border-color: #e5e5e5; cursor: not-allowed;
+}
+
+.filter-menu summary {
+  background: #fff; border: 1px solid #e5e5e5; border-radius: 12px;
+  color: #262626; font-weight: 500;
+}
+.filter-menu summary:hover { background: #fafafa; border-color: #8c8c8c; }
+.filter-menu summary:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+.filter-menu summary span {
+  background: #000; color: #fff; border-radius: 9999px; font-size: 14px;
+}
+.filter-menu summary::after { color: #595959; }
+
+.filter-popover {
+  background: #fff; border: 1px solid #e5e5e5; border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .1);
+}
+.filter-list label { color: #262626; border-radius: 8px; }
+.filter-list label:hover { background: #f5f5f5; }
+.filter-list input { accent-color: #000; }
+.filter-clear { color: #000; font-weight: 600; }
+.filter-clear:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+
+.unfinished-filter {
+  background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; color: #262626;
+}
+.unfinished-filter input { accent-color: #000; }
+
+.date-range input, .date-range select { border-radius: 12px; }
+.date-range button[type="submit"] {
+  background: #000; border-color: #000; color: #fff;
+  border-radius: 12px; min-width: 44px;
+}
+.date-range button[type="submit"]:hover { background: #262626; }
+.date-range button[type="submit"]:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+
+.notice { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 12px; color: #262626; }
+.notice-dot { background: #000; }
+.count-pill { background: #f5f5f5; color: #262626; border-radius: 9999px; font-weight: 600; }
+
+/* ---------- dialog ---------- */
+dialog { background: #fff; border-radius: 12px; color: #262626; border: 1px solid #e5e5e5; }
+dialog::backdrop { background: rgba(0, 0, 0, .6); }
+.detail-item { border-top: 1px solid #e5e5e5; }
+.detail-item strong { color: #000; }
+.detail-item small { color: #595959; }
+
+/* ---------- kartu pasien HP ---------- */
+.patient-details-toggle {
+  background: #fff; color: #000; border: 1px solid #000;
+  border-radius: 9999px; font-weight: 700; min-height: 44px;
+}
+.patient-details-toggle:hover { background: #f5f5f5; }
+.patient-details-toggle:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+.patient-details-toggle[aria-expanded="true"] {
+  background: #000; color: #fff; border-color: #000;
+}
+.patient-row { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; }
+.patient-row.patient-expanded { border-color: #000; }
+
+/* ---------- tipografi ---------- */
+h1 { font-size: 30px; line-height: 36px; font-weight: 600; color: #000; letter-spacing: -.02em; }
+h2 { font-size: 24px; line-height: 32px; font-weight: 600; color: #000; letter-spacing: -.01em; }
+.eyebrow {
+  font-size: 14px; letter-spacing: .08em; font-weight: 600;
+  color: #595959; text-transform: uppercase;
+}
+.section-heading p:not(.eyebrow),
+.overview-note, .metric-note, .intro {
+  color: #595959; font-size: 14px; line-height: 22px;
+}
+
+/* ---------- fokus global ---------- */
+:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 24px; line-height: 32px; }
+  .metric strong { font-size: 30px; }
+  .patient-row { border-radius: 12px; padding: 14px; }
+  .top-actions .button { min-height: 44px; }
+  .nav-item { min-height: 44px; }
+  .status-select { min-height: 44px; }
+
+  /* Header HP: judul tidak boleh terpotong, aksi tidak berdesakan */
+  .topbar {
+    height: auto;
+    min-height: 64px;
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .header-title {
+    flex: 1 1 100%;
+    font-size: 16px;
+    line-height: 22px;
+    gap: 8px;
+    min-width: 0;
+  }
+  .header-title > span {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .top-actions {
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+  .top-actions .button {
+    padding: 0 12px;
+    font-size: 14px;
+  }
+}
