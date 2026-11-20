@@ -312,13 +312,20 @@
                 details.setAttribute('aria-expanded', String(open));
                 details.textContent = open ? 'Tutup' : 'Rincian';
             });
-            nameCell.appendChild(details);
             const statusCell = cell(row, '');
             statusCell.replaceChildren(resumeStatus(record));
             const noteCell = cell(row, '');
             if (core.noteText(record.note)) noteCell.replaceChildren(detailButton('Belum lengkap · Lihat catatan', [record], `Catatan · ${record.nama || record.sep}`));
             else noteCell.replaceChildren(badge(record.status === 'sudah' ? 'Lengkap' : 'Menunggu resume', record.status === 'sudah' ? 'complete' : 'pending'));
             ['No.', 'Tanggal masuk', 'Tanggal pulang', 'Nomor SEP', 'Nama', 'Nomor RM', 'Ruangan', 'DPJP', 'Resume medis', 'Kelengkapan berkas'].forEach((label, i) => { row.children[i].dataset.label = label; });
+            /* Sel tombol Rincian ditaruh paling akhir (indeks 11) agar urutan
+               kolom 1-10 tidak bergeser. Di desktop tombolnya hidden, jadi
+               tabel tetap identik. */
+            const detailsCell = document.createElement('td');
+            detailsCell.className = 'patient-details-cell';
+            detailsCell.dataset.label = 'Rincian';
+            detailsCell.appendChild(details);
+            row.appendChild(detailsCell);
             body.appendChild(row);
         });
         $('patients-empty').hidden = filtered.length > 0;
