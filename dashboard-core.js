@@ -61,7 +61,7 @@
     }
 
     function isComplete(record) {
-        return record.status === 'sudah' && (record.completeOverride === true || !noteText(record.note));
+        return record.status === 'sudah' && !noteText(record.note);
     }
 
     function summarize(records) {
@@ -80,6 +80,13 @@
             groups.set(key, group);
         });
         return [...groups.values()].sort((a, b) => Number(a.unassigned) - Number(b.unassigned) || (a.done * b.total - b.done * a.total) || (b.incomplete - a.incomplete) || a.doctor.localeCompare(b.doctor, 'id'));
+    }
+
+    function unfinishedForMonth(records, month) {
+        if (!/^\d{4}-(?:0[1-9]|1[0-2])$/.test(month || '')) throw new Error('Pilih bulan pulang yang valid.');
+        return records.filter(record => record.status === 'belum' && date(record.tglPulang).startsWith(month))
+            .map(record => Object.fromEntries(['sep', 'rm', 'nama', 'tglMasuk', 'tglPulang', 'ruangan', 'dpjp'].map(key => [key, record[key] || ''])))
+            .sort((a, b) => a.tglPulang.localeCompare(b.tglPulang) || String(a.nama).localeCompare(String(b.nama), 'id'));
     }
 
     function patientRows(records, options = {}) {
@@ -110,5 +117,14 @@
         });
     }
 
-    root.EklaimDashboard = { date, noteText, doctorKey, resolve, summarize, patientRows, isComplete };
+    function isErmPdfUrl(value) {
+        try {
+            const url = new URL(value);
+            const allowed = (url.protocol === 'http:' && ['172.16.0.3', '172.16.0.11'].includes(url.hostname)) ||
+                (url.protocol === 'https:' && url.hostname === 'pakairoket.com');
+            return allowed && /^\/(?:erms\/)?rsud\/(?:cetak\/c_sep16|i\/klaimulangcasemix)\/[^/]+(?:\/|$)/i.test(url.pathname);
+        } catch (_) { return false; }
+    }
+
+    root.EklaimDashboard = { date, noteText, doctorKey, resolve, summarize, patientRows, isComplete, unfinishedForMonth, isErmPdfUrl };
 })(globalThis);

@@ -46,7 +46,7 @@
     function percent(part, total) { return total ? Math.round(part * 100 / total) : 0; }
 
     function filterDoctors() {
-        const query = core.doctorKey($('doctor-search').value);
+        const query = core.doctorKey($('doctor-search')?.value);
         const rows = Array.from($('doctors').children);
         let visible = 0;
         rows.forEach(row => {
@@ -163,19 +163,21 @@
         $('done-percent').textContent = `${percent(done, chosen.length)}% dari seluruh pasien`;
         $('incomplete').textContent = incomplete;
         $('doctor-count').textContent = `${groups.length} dokter`;
-        $('overview-count').textContent = `${groups.length} dokter`;
         const overviewBody = $('overview-doctors');
-        overviewBody.replaceChildren();
-        groups.forEach((group, index) => {
-            const row = document.createElement('tr');
-            cell(row, String(index + 1));
-            cell(row, group.doctor);
-            cell(row, `${group.done}/${group.total}`);
-            const remaining = cell(row, String(group.total - group.done));
-            if (group.total > group.done) remaining.className = 'overview-pending';
-            overviewBody.appendChild(row);
-        });
-        $('overview-empty').hidden = groups.length > 0;
+        if (overviewBody) {
+            $('overview-count').textContent = `${groups.length} dokter`;
+            overviewBody.replaceChildren();
+            groups.forEach((group, index) => {
+                const row = document.createElement('tr');
+                cell(row, String(index + 1));
+                cell(row, group.doctor);
+                cell(row, `${group.done}/${group.total}`);
+                const remaining = cell(row, String(group.total - group.done));
+                if (group.total > group.done) remaining.className = 'overview-pending';
+                overviewBody.appendChild(row);
+            });
+            $('overview-empty').hidden = groups.length > 0;
+        }
         const undatedCount = records.filter(record => !record.tglPulang).length;
         $('undated-count').textContent = undatedCount;
         $('undated').hidden = !isExtension || (!undated && undatedCount === 0);
@@ -183,6 +185,7 @@
         $('undated').firstChild.textContent = undated ? 'Kembali ke bulan ' : 'Tanggal belum tersedia ';
         $('publish').textContent = 'Kirim ke Supabase';
         $('publish').hidden = source.value !== 'local';
+        if ($('prepare-unfinished')) $('prepare-unfinished').hidden = !isExtension || source.value !== 'local' || undated;
         $('source-caption').textContent = publishedAt
             ? `Terakhir diperbarui: ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(publishedAt))}. Tidak diperbarui secara realtime.`
             : source.value === 'local' ? 'Data tersimpan di perangkat. Kirim secara manual untuk memperbarui dashboard bersama.' : 'Waktu pembaruan belum tersedia. Tidak diperbarui secara realtime.';
@@ -260,15 +263,17 @@
         const query = $('search').value.trim();
         const { dateFrom, dateTo } = appliedDates;
         const filtered = core.patientRows(chosen, { query, doctors: selectedDoctors, rooms: selectedRooms, sortKey, sortDirection, ...appliedDates });
-        const pageSize = Number($('patient-page-size').value);
+        const pageSize = Number($('patient-page-size')?.value) || filtered.length || 1;
         const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
         patientPage = Math.min(totalPages, Math.max(1, patientPage));
         const offset = (patientPage - 1) * pageSize;
-        $('patient-page-status').textContent = `Halaman ${patientPage} dari ${totalPages}`;
-        $('patient-prev').disabled = patientPage === 1;
-        $('patient-next').disabled = patientPage === totalPages;
-        $('mobile-sort').value = sortKey;
-        $('mobile-direction').textContent = sortDirection === 'asc' ? 'Naik ↑' : 'Turun ↓';
+        if ($('patient-page-status')) {
+            $('patient-page-status').textContent = `Halaman ${patientPage} dari ${totalPages}`;
+            $('patient-prev').disabled = patientPage === 1;
+            $('patient-next').disabled = patientPage === totalPages;
+        }
+        if ($('mobile-sort')) $('mobile-sort').value = sortKey;
+        if ($('mobile-direction')) $('mobile-direction').textContent = sortDirection === 'asc' ? 'Naik ↑' : 'Turun ↓';
         $('patient-result-count').textContent = `${filtered.length} dari ${chosen.length} pasien`;
         document.querySelectorAll('[data-sort-header]').forEach(header => {
             const active = header.dataset.sortHeader === sortKey;
@@ -287,7 +292,7 @@
             const statusCell = cell(row, '');
             statusCell.replaceChildren(resumeStatus(record));
             const noteCell = cell(row, '');
-            if (core.noteText(record.note)) noteCell.replaceChildren(detailButton(core.isComplete(record) ? 'Lengkap · Lihat catatan' : record.status === 'sudah' ? 'Belum lengkap' : 'Lihat catatan', [record], `Catatan · ${record.nama || record.sep}`));
+            if (core.noteText(record.note)) noteCell.replaceChildren(detailButton('Belum lengkap · Lihat catatan', [record], `Catatan · ${record.nama || record.sep}`));
             else noteCell.replaceChildren(badge(record.status === 'sudah' ? 'Lengkap' : 'Menunggu resume', record.status === 'sudah' ? 'complete' : 'pending'));
             ['No.', 'Tanggal masuk', 'Tanggal pulang', 'Nomor SEP', 'Nama', 'Nomor RM', 'Ruangan', 'DPJP', 'Resume medis', 'Kelengkapan berkas'].forEach((label, i) => { row.children[i].dataset.label = label; });
             body.appendChild(row);
@@ -380,6 +385,41 @@
         }
     }
 
+    $('prepare-unfinished')?.addEventListener('click', () => {
+        if (!isExtension || source.value !== 'local' || session?.role !== 'admin' || undated) { notify('Hanya pengelola yang dapat menyiapkan data perangkat per bulan.', true); return; }
+        try {
+            const selected = core.unfinishedForMonth(records, month.value);
+            if (!selected.length) { notify('Tidak ada pasien berstatus Resume belum pada bulan ini.'); return; }
+            $('prepare-summary').textContent = `${selected.length} pasien berstatus Resume belum pada bulan ${month.value}. Data perangkat akan diperiksa kembali sebelum disiapkan.`;
+            $('prepare-email').value = $('login-email').value;
+            $('prepare-password').value = '';
+            $('prepare-error').textContent = '';
+            $('prepare-dialog').showModal();
+        } catch (error) { notify(error.message, true); }
+    });
+    $('prepare-form')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        const button = event.currentTarget.querySelector('button[type="submit"]');
+        button.disabled = true; $('prepare-error').textContent = '';
+        const selectedMonth = month.value;
+        try {
+            if (!isExtension || source.value !== 'local' || session?.role !== 'admin' || undated) throw new Error('Sesi pengelola atau data perangkat tidak tersedia.');
+            const verified = await EklaimDashboardAuth.login(config, $('prepare-email').value.trim(), $('prepare-password').value);
+            if (verified.role !== 'admin') throw new Error('Akun ini bukan pengelola dashboard.');
+            const items = await chrome.storage.local.get(null);
+            if (Array.isArray(items.eklaim_pending_dashboard_unfinished) && items.eklaim_pending_dashboard_unfinished.length) throw new Error('Masih ada daftar dashboard yang belum diproses di e-RM. Selesaikan daftar tersebut dahulu.');
+            const current = Object.entries(items)
+                .filter(([key, value]) => /^eklaim_dashboard_\d{4}R\d{7}V\d{6}$/.test(key) && value?.sep && key === `eklaim_dashboard_${value.sep}`)
+                .map(([, record]) => core.resolve(record, items));
+            const patients = core.unfinishedForMonth(current, selectedMonth);
+            if (!patients.length) throw new Error('Tidak ada lagi pasien berstatus Resume belum pada bulan ini.');
+            await chrome.storage.local.set({ eklaim_pending_dashboard_unfinished: patients });
+            $('prepare-dialog').close();
+            notify(`${patients.length} pasien disiapkan dari bulan ${selectedMonth}. Buka daftar e-RM dengan periode sesuai, lalu tekan Cek Resume. Daftar antrean lain tetap tersimpan.`);
+        } catch (error) { $('prepare-error').textContent = error.message; }
+        finally { $('prepare-password').value = ''; button.disabled = false; }
+    });
+
     $('publish').addEventListener('click', () => {
         if (session?.role !== 'admin') { notify('Hanya pengelola yang dapat mengirim data.', true); return; }
         if (undated) { notify('Isi tanggal pulang agar pasien dapat diterbitkan berdasarkan bulan.', true); return; }
@@ -403,7 +443,7 @@
             const code = EklaimSnapshot.monthCode(selectedMonth);
             const current = await EklaimDashboardAuth.publish(config, session, { action: 'read', month: selectedMonth });
             const previous = current.snapshot ? EklaimSnapshot.validateMonth(await EklaimSnapshot.decrypt(current.snapshot, password), selectedMonth) : { records: [] };
-            const fields = ['sep', 'rm', 'nama', 'ruangan', 'dpjp', 'tglMasuk', 'tglPulang', 'status', 'note', 'completeOverride'];
+            const fields = ['sep', 'rm', 'nama', 'ruangan', 'dpjp', 'tglMasuk', 'tglPulang', 'status', 'note'];
             const selected = chosenRecords().map(record => Object.fromEntries(fields.map(field => [field, record[field] ?? ''])));
             const snapshot = EklaimSnapshot.merge(previous.records, selected, new Date().toISOString(), selectedMonth);
             const encrypted = await EklaimSnapshot.encrypt(snapshot, nextPassword);
@@ -421,16 +461,17 @@
     });
 
     function showView(view) {
-        $('overview-view').hidden = view !== 'overview';
+        if ($('overview-view')) $('overview-view').hidden = view !== 'overview';
         $('doctors-view').hidden = view !== 'doctors';
         $('patients-view').hidden = view !== 'patients';
         for (const [id, active] of [['nav-overview', view === 'overview'], ['nav-doctors', view === 'doctors'], ['nav-patients', view === 'patients']]) {
             const button = $(id);
+            if (!button) continue;
             button.classList.toggle('active', active);
             if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
         }
     }
-    $('nav-overview').addEventListener('click', () => showView('overview'));
+    $('nav-overview')?.addEventListener('click', () => showView('overview'));
     $('nav-doctors').addEventListener('click', () => showView('doctors'));
     $('nav-patients').addEventListener('click', () => showView('patients'));
     $('sidebar-toggle').addEventListener('click', () => {
@@ -459,8 +500,8 @@
     month.addEventListener('change', () => { undated = false; $('published-link').hidden = true; publishedAt = null; renderFirstPage(); });
     source.addEventListener('change', () => { undated = false; patientPage = 1; load(); });
     $('search').addEventListener('input', renderFirstPage);
-    $('doctor-search').addEventListener('input', filterDoctors);
-    $('date-filter').addEventListener('submit', event => {
+    $('doctor-search')?.addEventListener('input', filterDoctors);
+    $('date-filter')?.addEventListener('submit', event => {
         event.preventDefault();
         const dateFrom = $('date-from').value;
         const dateTo = $('date-to').value;
@@ -472,18 +513,18 @@
         appliedDates = { dateField: $('date-field').value, dateFrom, dateTo };
         renderFirstPage();
     });
-    $('date-clear').addEventListener('click', () => {
+    $('date-clear')?.addEventListener('click', () => {
         $('date-from').value = '';
         $('date-to').value = '';
         $('date-error').textContent = '';
         appliedDates = {};
         renderFirstPage();
     });
-    $('patient-page-size').addEventListener('change', renderFirstPage);
-    $('patient-prev').addEventListener('click', () => { patientPage--; render(); });
-    $('patient-next').addEventListener('click', () => { patientPage++; render(); });
-    $('mobile-sort').addEventListener('change', () => { sortKey = $('mobile-sort').value; sortDirection = 'asc'; render(); });
-    $('mobile-direction').addEventListener('click', () => { sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; render(); });
+    $('patient-page-size')?.addEventListener('change', renderFirstPage);
+    $('patient-prev')?.addEventListener('click', () => { patientPage--; render(); });
+    $('patient-next')?.addEventListener('click', () => { patientPage++; render(); });
+    $('mobile-sort')?.addEventListener('change', () => { sortKey = $('mobile-sort').value; sortDirection = 'asc'; render(); });
+    $('mobile-direction')?.addEventListener('click', () => { sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; render(); });
     $('undated').addEventListener('click', () => { undated = !undated; renderFirstPage(); });
     $('refresh').addEventListener('click', load);
     document.querySelectorAll('.close-dialog').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
